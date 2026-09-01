@@ -23,8 +23,8 @@
   --sans:'Figtree', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --mono:'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --pixel:'Press Start 2P', var(--mono);
-  --proc-isentropic:#2f6fed; --proc-isobaric:#c9720c; --proc-isochoric:#7a3fd1;
-  --proc-isothermal:#0f8f6f; --proc-isenthalpic:#c23a7a; --proc-polytropic:#8a6d1f; --proc-none:#8b0000;
+  --palette-0:#2f6fed; --palette-1:#d9720c; --palette-2:#1f9e58; --palette-3:#c23a7a;
+  --palette-4:#7a3fd1; --palette-5:#c9a227; --palette-6:#0f8f8f; --palette-7:#a13d3d;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
@@ -36,8 +36,8 @@
     --accent:#5fd6b3; --warn:#e0a233; --warn-bg:#332a12; --bad:#ff6b5f; --bad-bg:#33150f;
     --derived:#a3a3ab; --user-set:#f5f5f6;
     --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
-    --proc-isentropic:#6d9bff; --proc-isobaric:#ffab5c; --proc-isochoric:#b48aff;
-    --proc-isothermal:#4fe0b8; --proc-isenthalpic:#ff8fc0; --proc-polytropic:#d8b45c; --proc-none:#ff6b5f;
+    --palette-0:#6d9bff; --palette-1:#ffab5c; --palette-2:#4ade80; --palette-3:#ff8fc0;
+    --palette-4:#b48aff; --palette-5:#e8cf5c; --palette-6:#4fd8d8; --palette-7:#e08080;
   }
 }
 :root[data-theme="dark"]{
@@ -49,8 +49,8 @@
   --accent:#5fd6b3; --warn:#e0a233; --warn-bg:#332a12; --bad:#ff6b5f; --bad-bg:#33150f;
   --derived:#a3a3ab; --user-set:#f5f5f6;
   --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
-  --proc-isentropic:#6d9bff; --proc-isobaric:#ffab5c; --proc-isochoric:#b48aff;
-  --proc-isothermal:#4fe0b8; --proc-isenthalpic:#ff8fc0; --proc-polytropic:#d8b45c; --proc-none:#ff6b5f;
+  --palette-0:#6d9bff; --palette-1:#ffab5c; --palette-2:#4ade80; --palette-3:#ff8fc0;
+  --palette-4:#b48aff; --palette-5:#e8cf5c; --palette-6:#4fd8d8; --palette-7:#e08080;
 }
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0; overflow-x:hidden;}
@@ -448,11 +448,17 @@ function solveSteamState(known) {
   if (have(known.T)) k.T = known.T+273.15; // -> K
   ['h','s','v','u','x'].forEach(p=>{ if (have(known[p])) k[p]=Number(known[p]); });
 
-  function fromPT(p,T){
+  // forceRegion lets a caller that already committed to a side (e.g. a Newton
+  // solve run against region1 specifically) skip re-deriving liquid-vs-vapor
+  // from T<Tsat here — right at the saturation boundary the solved T can land
+  // on either side of Tsat by float noise, and re-deriving would silently flip
+  // to the other region's (wildly different) properties for the same T.
+  function fromPT(p,T,forceRegion){
     if (region3ish(p,T)) return {error:'out-of-range', note:'Near/above the critical point (Region 3) is not supported in this MVP — try a lower pressure or temperature.'};
     const Tsat = (p>=PMIN && p<=PCRIT) ? Tsat_p(p) : null;
-    const r = (Tsat!==null && T < Tsat) ? region1(p,T) : region2(p,T);
-    return {P:p*1000, T:T-273.15, h:r.h, s:r.s, v:r.v, u:r.u, x: (Tsat!==null && T<Tsat)?0:( (Tsat!==null && Math.abs(T-Tsat)<1e-6)?null:1), cp:r.cp, region:(Tsat!==null&&T<Tsat)?1:2};
+    const isLiquid = forceRegion ? forceRegion===1 : (Tsat!==null && T < Tsat);
+    const r = isLiquid ? region1(p,T) : region2(p,T);
+    return {P:p*1000, T:T-273.15, h:r.h, s:r.s, v:r.v, u:r.u, x: isLiquid?0:( (Tsat!==null && Math.abs(T-Tsat)<1e-6)?null:1), cp:r.cp, region:isLiquid?1:2};
   }
   function satMix(p, propGetter, xVal){
     const s = satAtP(p);
@@ -492,16 +498,16 @@ function solveSteamState(known) {
         }
         if (k[prop] < fl) {
           const T = newton1D(T=>region1(p,T)[prop]-k[prop], sat.T-20, TMIN, sat.T);
-          return fromPT(p, T);
+          return fromPT(p, T, 1);
         } else {
           const T = newton1D(T=>region2(p,T)[prop]-k[prop], sat.T+20, sat.T, 1073.15);
-          return fromPT(p, T);
+          return fromPT(p, T, 2);
         }
       } else {
         // supercritical-ish pressure or below triple point: search whole liquid+vapour range generically
         const Tg = (prop==='h'||prop==='u') ? (k[prop]>1500?700:350) : (k[prop]>4?700:350);
         const T = newton1D(T=> (T<623.15?region1(p,T):region2(p,T))[prop]-k[prop], Tg, TMIN, 1073.15);
-        return fromPT(p, T);
+        return fromPT(p, T, T<623.15?1:2);
       }
     }
   }
@@ -521,10 +527,10 @@ function solveSteamState(known) {
         }
         if (k[prop] < fl) {
           const P = newton1D(P=>region1(P,T)[prop]-k[prop], p*3, p, 100);
-          return fromPT(P, T);
+          return fromPT(P, T, 1);
         } else {
           const P = newton1D(P=>region2(P,T)[prop]-k[prop], p/3, PMIN, p);
-          return fromPT(P, T);
+          return fromPT(P, T, 2);
         }
       }
     }
@@ -550,8 +556,9 @@ function solveSteamState(known) {
       return {P,T,ok: Math.abs(r.h-k.h)<1e-2 && Math.abs(r.s-k.s)<1e-3};
     }
     let res = try2D(region2, 500, 2, [273.16,1073.15], [PMIN,100]);
-    if (!res.ok) res = try2D(region1, 400, 5, [273.16,623.15], [PMIN,100]);
-    if (res.ok) return fromPT(res.P, res.T);
+    let forceRegion = 2;
+    if (!res.ok) { res = try2D(region1, 400, 5, [273.16,623.15], [PMIN,100]); forceRegion = 1; }
+    if (res.ok) return fromPT(res.P, res.T, forceRegion);
     // two-phase fallback: solve for P where s(x=(h-hf(P))/(hg(P)-hf(P))) == k.s
     const P = newton1D(P=>{
       const sat = satAtP(P);
@@ -1252,7 +1259,8 @@ function statEl(label, value, cls){ const d=document.createElement('div'); d.cla
 
 /* ---------------------------- plotting (custom SVG) ---------------------------- */
 const PROCESS_LABEL_MAP = Object.fromEntries(PROCESS_OPTS);
-const PROCESS_COLOR_VARS = new Set(['isentropic','isobaric','isochoric','isothermal','isenthalpic','polytropic']);
+const PALETTE_SIZE = 8;
+function segColor(i){ return `var(--palette-${i % PALETTE_SIZE})`; }
 const COMPONENT_LABEL_MAP = Object.fromEntries(COMPONENT_OPTS);
 
 // Sample ~15 intermediate full states along one transition's actual process path
@@ -1299,11 +1307,13 @@ function renderPlots(res){
   renderProcLegend();
 }
 function renderProcLegend(){
-  const used = [...new Set(app.transitions.slice(0,app.numStates).map(t=>t.process||'none'))];
+  const N = app.numStates;
   const legend = document.getElementById('procLegend');
-  legend.innerHTML = used.map(p=>{
-    const colorVar = PROCESS_COLOR_VARS.has(p) ? p : 'none';
-    return `<span><i style="background:var(--proc-${colorVar})"></i>${PROCESS_LABEL_MAP[p]||p}</span>`;
+  legend.innerHTML = app.transitions.slice(0,N).map((t,i)=>{
+    const j=(i+1)%N;
+    const label = PROCESS_LABEL_MAP[t.process]||t.process||'—';
+    const comp = COMPONENT_LABEL_MAP[t.component];
+    return `<span><i style="background:${segColor(i)}"></i>${i+1}→${j+1}: ${label}${comp?' · '+comp:''}</span>`;
   }).join('');
 }
 function plotCard(title, svg){
@@ -1402,7 +1412,7 @@ function arrowMarker(x,y,angle,color){
   const tipX=x+Math.cos(angle)*len*0.6, tipY=y+Math.sin(angle)*len*0.6;
   const backX=x-Math.cos(angle)*len*0.4, backY=y-Math.sin(angle)*len*0.4;
   const px=Math.cos(angle+Math.PI/2)*wid, py=Math.sin(angle+Math.PI/2)*wid;
-  return `<polygon points="${tipX.toFixed(1)},${tipY.toFixed(1)} ${(backX+px).toFixed(1)},${(backY+py).toFixed(1)} ${(backX-px).toFixed(1)},${(backY-py).toFixed(1)}" fill="${color||'var(--proc-none)'}"/>`;
+  return `<polygon points="${tipX.toFixed(1)},${tipY.toFixed(1)} ${(backX+px).toFixed(1)},${(backY+py).toFixed(1)} ${(backX-px).toFixed(1)},${(backY-py).toFixed(1)}" fill="${color||'var(--maroon)'}"/>`;
 }
 function escapeHtml(str){ return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 function stateTooltipLines(i, st){
@@ -1462,8 +1472,7 @@ function renderPlotSVG({cyclePts, segPaths, dome, states, transitions, opts}){
     const j=(i+1)%cyclePts.length;
     const pts = seg.filter(p=>isFinite(p.x)&&isFinite(p.y)).map(proj);
     if (pts.length<2) return;
-    const proc = (app.transitions[i]||{}).process || 'none';
-    const color = `var(--proc-${PROCESS_COLOR_VARS.has(proc)?proc:'none'})`;
+    const color = segColor(i);
     const d = smoothPathD(pts);
     const mid = pointAtFraction(pts, 0.52);
     const tc = transitions[i]||{};
