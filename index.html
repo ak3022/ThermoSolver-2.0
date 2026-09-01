@@ -8,49 +8,51 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23111318'/%3E%3Crect x='2' y='2' width='5' height='5' fill='%238b0000'/%3E%3Crect x='9' y='9' width='5' height='5' fill='%2300008b'/%3E%3Crect x='9' y='2' width='5' height='5' fill='%23eaeaea'/%3E%3Crect x='2' y='9' width='5' height='5' fill='%23eaeaea'/%3E%3C/svg%3E" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;500;600;700&family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#f4f3ef; --bg-elev:#ffffff; --bg-sunken:#eceae3;
-  --ink:#1d1c1a; --ink-dim:#5c5a54; --ink-faint:#8b887f;
-  --line:#dcd9d0; --line-strong:#c3bfb2;
+  --bg:#f6f6f7; --bg-elev:#ffffff; --bg-sunken:#f0f0f2;
+  --ink:#1a1a1e; --ink-dim:#63636b; --ink-faint:#8f8f97;
+  --line:#e5e5e9; --line-strong:#d3d3d9;
   --maroon:#8b0000; --maroon-ink:#ffffff; --maroon-soft:#fbe9e7;
   --navy:#00008b; --navy-ink:#ffffff; --navy-soft:#e8e9fb;
-  --accent:#2a6f5c; --warn:#a15c00; --warn-bg:#fdf1de; --bad:#8b0000; --bad-bg:#fbe9e7;
-  --derived:#5c5a54; --user-set:#1d1c1a;
-  --shadow: 0 1px 2px rgba(20,18,14,.06), 0 4px 14px rgba(20,18,14,.05);
+  --accent:#25735f; --warn:#9a5b00; --warn-bg:#fbf0dd; --bad:#8b0000; --bad-bg:#fbe9e7;
+  --derived:#63636b; --user-set:#1a1a1e;
+  --shadow: 0 1px 2px rgba(20,20,25,.05), 0 4px 16px rgba(20,20,25,.05);
   --radius:10px;
+  --sans:'Figtree', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --mono:'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --pixel:'Press Start 2P', var(--mono);
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#14151a; --bg-elev:#1b1d24; --bg-sunken:#101116;
-    --ink:#eceae3; --ink-dim:#a8a59c; --ink-faint:#716e66;
-    --line:#2c2e37; --line-strong:#3c3f4b;
+    --bg:#0f1013; --bg-elev:#18191d; --bg-sunken:#0b0c0e;
+    --ink:#eaeaec; --ink-dim:#a3a3ab; --ink-faint:#707078;
+    --line:#28292e; --line-strong:#38393f;
     --maroon:#ff6b5f; --maroon-ink:#1a0400; --maroon-soft:#3a1512;
-    --navy:#7d8bff; --navy-ink:#050014; --navy-soft:#161a3a;
-    --accent:#5fd6b3; --warn:#e0a233; --warn-bg:#3a2c10; --bad:#ff6b5f; --bad-bg:#3a1512;
-    --derived:#a8a59c; --user-set:#f3f1ea;
+    --navy:#8b93ff; --navy-ink:#050014; --navy-soft:#181a3a;
+    --accent:#5fd6b3; --warn:#e0a233; --warn-bg:#332a12; --bad:#ff6b5f; --bad-bg:#33150f;
+    --derived:#a3a3ab; --user-set:#f5f5f6;
     --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
   }
 }
 :root[data-theme="dark"]{
-  --bg:#14151a; --bg-elev:#1b1d24; --bg-sunken:#101116;
-  --ink:#eceae3; --ink-dim:#a8a59c; --ink-faint:#716e66;
-  --line:#2c2e37; --line-strong:#3c3f4b;
+  --bg:#0f1013; --bg-elev:#18191d; --bg-sunken:#0b0c0e;
+  --ink:#eaeaec; --ink-dim:#a3a3ab; --ink-faint:#707078;
+  --line:#28292e; --line-strong:#38393f;
   --maroon:#ff6b5f; --maroon-ink:#1a0400; --maroon-soft:#3a1512;
-  --navy:#7d8bff; --navy-ink:#050014; --navy-soft:#161a3a;
-  --accent:#5fd6b3; --warn:#e0a233; --warn-bg:#3a2c10; --bad:#ff6b5f; --bad-bg:#3a1512;
-  --derived:#a8a59c; --user-set:#f3f1ea;
+  --navy:#8b93ff; --navy-ink:#050014; --navy-soft:#181a3a;
+  --accent:#5fd6b3; --warn:#e0a233; --warn-bg:#332a12; --bad:#ff6b5f; --bad-bg:#33150f;
+  --derived:#a3a3ab; --user-set:#f5f5f6;
   --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
 }
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0; overflow-x:hidden;}
 body{
-  background:var(--bg); color:var(--ink); font-family:var(--mono);
-  font-size:14px; line-height:1.5;
+  background:var(--bg); color:var(--ink); font-family:var(--sans);
+  font-size:14.5px; line-height:1.5;
 }
+input, select, button, textarea{ font-family:inherit; }
 a{color:var(--navy);}
 ::selection{background:var(--maroon); color:var(--maroon-ink);}
 
@@ -66,7 +68,7 @@ a{color:var(--navy);}
 @media(min-width:760px){ .brand-tag{display:inline;} }
 .header-actions{display:flex; align-items:center; gap:10px;}
 .theme-toggle, .share-btn{
-  font-family:var(--mono); font-size:12px; font-weight:600; color:var(--ink-dim);
+  font-family:var(--sans); font-size:12.5px; font-weight:600; color:var(--ink-dim);
   background:var(--bg-elev); border:1px solid var(--line); border-radius:8px;
   padding:7px 12px; cursor:pointer;
 }
@@ -81,9 +83,10 @@ a{color:var(--navy);}
 .field{display:flex; flex-direction:column; gap:4px; min-width:0; max-width:100%;}
 .field label{font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-faint); font-weight:600;}
 .field select, .field input[type=number], .field input[type=text]{
-  font-family:var(--mono); font-size:13px; color:var(--ink); background:var(--bg-sunken);
+  font-family:var(--sans); font-size:13.5px; color:var(--ink); background:var(--bg-sunken);
   border:1px solid var(--line); border-radius:7px; padding:7px 8px; min-width:0;
 }
+.field input[type=number]{font-family:var(--mono);}
 .field select{width:min(190px, 60vw);}
 .field input[type=number]{width:88px;}
 .field select:focus, .field input:focus{outline:2px solid var(--navy); outline-offset:1px;}
@@ -106,10 +109,10 @@ a{color:var(--navy);}
   display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px;
   border-radius:50%; background:var(--navy); color:var(--navy-ink); font-weight:700; font-size:11.5px; flex-shrink:0;
 }
-.state-title{font-size:11.5px; color:var(--ink-dim); font-weight:600;}
-.state-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(72px,1fr)); gap:7px; min-width:0;}
+.state-title{font-size:12px; color:var(--ink-dim); font-weight:600;}
+.state-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(78px,1fr)); gap:8px; min-width:0;}
 .pfield{display:flex; flex-direction:column; gap:2px; min-width:0;}
-.pfield label{font-size:9.5px; color:var(--ink-faint); font-weight:700; text-transform:uppercase;}
+.pfield label{font-size:10px; color:var(--ink-faint); font-weight:700; font-family:var(--sans);}
 .pfield input{
   font-family:var(--mono); font-size:12.5px; padding:5px 6px; border-radius:6px;
   border:1px solid var(--line); background:var(--bg-elev); color:var(--ink); width:100%; min-width:0;
@@ -125,15 +128,17 @@ a{color:var(--navy);}
   background:transparent; min-width:0;
 }
 .transition-body select, .transition-body input{
-  font-family:var(--mono); font-size:11.5px; padding:4px 6px; border-radius:6px;
+  font-family:var(--sans); font-size:12px; padding:4px 6px; border-radius:6px;
   border:1px solid var(--line); background:var(--bg-sunken); color:var(--ink); max-width:100%;
 }
+.transition-body input{font-family:var(--mono);}
 .transition-body select:focus, .transition-body input:focus{outline:2px solid var(--navy); outline-offset:1px;}
 .theme-toggle:focus-visible, .share-btn:focus-visible{outline:2px solid var(--navy); outline-offset:1px;}
 .transition-mini{display:flex; flex-direction:column; gap:2px;}
 .transition-mini label{font-size:9px; color:var(--ink-faint); text-transform:uppercase; font-weight:700;}
 .transition-mini input{width:64px;}
 .transition-badge{
+  font-family:var(--mono); font-variant-numeric:tabular-nums;
   font-size:10.5px; font-weight:700; padding:3px 8px; border-radius:20px; white-space:nowrap;
   background:var(--bg-sunken); color:var(--ink-dim); border:1px solid var(--line);
 }
@@ -152,7 +157,8 @@ a{color:var(--navy);}
 .banner.bad{background:var(--bad-bg); color:var(--bad);}
 
 #outTableWrap{overflow-x:auto; margin-bottom:16px;}
-.out-table{width:100%; border-collapse:collapse; font-size:12px; min-width:520px;}
+.out-table{width:100%; border-collapse:collapse; font-size:12.5px; min-width:520px; font-family:var(--mono);}
+.out-table th{font-family:var(--sans);}
 .out-table th{text-align:right; font-size:9.5px; text-transform:uppercase; color:var(--ink-faint); font-weight:700; padding:4px 8px; border-bottom:1px solid var(--line-strong);}
 .out-table th:first-child, .out-table td:first-child{text-align:left;}
 .out-table td{text-align:right; padding:5px 8px; border-bottom:1px solid var(--line); font-variant-numeric:tabular-nums; color:var(--derived);}
@@ -165,10 +171,65 @@ a{color:var(--navy);}
 .legend .dot.set{background:var(--user-set);}
 .legend .dot.derived{background:var(--derived);}
 
-.plots{display:grid; grid-template-columns:1fr; gap:14px;}
-.plot-card{border:1px solid var(--line); border-radius:9px; padding:10px; background:var(--bg-sunken);}
-.plot-card h3{font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint); margin:0 0 6px;}
-.plot-card svg{width:100%; height:auto; display:block;}
+.plots-panel{margin-top:16px;}
+.plots-hint{font-size:12px; color:var(--ink-faint); margin:-6px 0 12px;}
+.plots{display:grid; grid-template-columns:repeat(auto-fit, minmax(320px,1fr)); gap:14px; min-width:0;}
+.plot-card{border:1px solid var(--line); border-radius:9px; padding:10px; background:var(--bg-sunken); min-width:0;}
+.plot-card h3{font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint); margin:0 0 6px; font-weight:700;}
+.plot-card svg{width:100%; height:auto; display:block; overflow:visible;}
+.plot-card svg .state-dot{cursor:pointer;}
+.plot-card svg .state-dot:hover{stroke-width:3;}
+.plot-card svg .seg-hit{cursor:pointer;}
+.plot-card svg .seg-hit:hover + .seg-line{stroke-width:3;}
+.plot-card svg .seg-line{pointer-events:none; transition:stroke-width .1s;}
+
+/* ---------- tooltip ---------- */
+.tooltip{
+  position:fixed; z-index:80; pointer-events:none; max-width:240px;
+  background:var(--ink); color:var(--bg); font-size:11.5px; line-height:1.5;
+  border-radius:8px; padding:8px 10px; box-shadow:var(--shadow);
+  font-family:var(--sans); transform:translate(-50%,-100%); margin-top:-10px;
+}
+.tooltip b{display:block; font-size:11.5px; margin-bottom:3px; color:var(--bg);}
+.tooltip .tt-row{display:flex; justify-content:space-between; gap:10px; font-family:var(--mono); font-variant-numeric:tabular-nums;}
+.tooltip .tt-row span:first-child{opacity:.7;}
+
+/* ---------- panel header / AI import ---------- */
+.panel-head{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px;}
+.panel-head h2{margin:0;}
+.ai-import-btn{
+  font-family:var(--sans); font-size:12px; font-weight:600; color:var(--navy);
+  background:var(--navy-soft); border:1px solid transparent; border-radius:8px;
+  padding:7px 12px; cursor:pointer; white-space:nowrap;
+}
+.ai-import-btn:hover{filter:brightness(0.96);}
+
+/* ---------- AI import modal ---------- */
+.modal-backdrop{position:fixed; inset:0; background:rgba(20,20,25,.45); z-index:90; display:flex; align-items:center; justify-content:center; padding:20px;}
+.modal{position:relative; background:var(--bg-elev); border-radius:14px; box-shadow:var(--shadow); max-width:480px; width:100%; padding:20px; max-height:88vh; overflow-y:auto;}
+.modal h3{margin:0 0 4px; font-size:16px;}
+.modal .modal-sub{font-size:12.5px; color:var(--ink-dim); margin:0 0 16px;}
+.drop-zone{
+  border:1.5px dashed var(--line-strong); border-radius:10px; padding:22px 14px; text-align:center;
+  color:var(--ink-dim); font-size:12.5px; cursor:pointer; background:var(--bg-sunken); outline-offset:2px;
+}
+.drop-zone:hover, .drop-zone:focus-visible{border-color:var(--navy); color:var(--ink);}
+.drop-zone img{max-width:100%; max-height:160px; border-radius:6px; display:block; margin:0 auto 8px;}
+.modal textarea{
+  width:100%; margin-top:10px; font-family:var(--sans); font-size:13px; color:var(--ink);
+  background:var(--bg-sunken); border:1px solid var(--line); border-radius:8px; padding:9px 10px; resize:vertical; min-height:64px;
+}
+.modal textarea:focus, .drop-zone:focus-visible{outline:2px solid var(--navy);}
+.modal-actions{display:flex; justify-content:flex-end; gap:8px; margin-top:14px;}
+.modal-actions button{
+  font-family:var(--sans); font-size:13px; font-weight:600; border-radius:8px; padding:8px 16px; cursor:pointer; border:1px solid var(--line);
+}
+.modal-actions .btn-primary{background:var(--maroon); color:var(--maroon-ink); border-color:transparent;}
+.modal-actions .btn-primary:disabled{opacity:.5; cursor:not-allowed;}
+.modal-actions .btn-secondary{background:var(--bg-elev); color:var(--ink-dim);}
+.modal-status{font-size:12px; color:var(--ink-dim); margin-top:10px; min-height:1.4em;}
+.modal-status.err{color:var(--bad);}
+.modal-close{position:absolute; top:14px; right:16px; background:none; border:none; font-size:16px; color:var(--ink-faint); cursor:pointer;}
 
 footer{margin-top:26px; font-size:11.5px; color:var(--ink-faint); text-align:center;}
 footer a{color:var(--ink-faint); text-decoration:underline;}
@@ -190,7 +251,10 @@ footer a{color:var(--ink-faint); text-decoration:underline;}
 
   <main class="workspace">
     <section class="panel" id="inputPanel">
-      <h2>Cycle — states &amp; processes</h2>
+      <div class="panel-head">
+        <h2>Cycle — states &amp; processes</h2>
+        <button class="ai-import-btn" id="aiImportBtn" type="button" hidden>✨ Import from a screenshot</button>
+      </div>
       <div class="pipeline" id="pipeline"></div>
     </section>
 
@@ -200,11 +264,19 @@ footer a{color:var(--ink-faint); text-decoration:underline;}
       <div class="summary-grid" id="summaryGrid"></div>
       <div class="legend"><span><i class="dot set"></i>you entered</span><span><i class="dot derived"></i>solved</span></div>
       <div id="outTableWrap"></div>
-      <div class="plots" id="plots"></div>
     </section>
   </main>
 
+  <section class="panel plots-panel">
+    <h2>Diagrams</h2>
+    <p class="plots-hint">Hover a point or a line for details. Arrows show the direction of flow around the cycle.</p>
+    <div class="plots" id="plots"></div>
+  </section>
+
   <footer>ThermoSolver — an educational thermodynamic cycle visualizer. Steam properties via IAPWS-IF97 (Regions 1/2/4). Ideal-gas properties use constant (cold-air-standard) specific heats.</footer>
+
+  <div id="tooltip" class="tooltip" hidden></div>
+  <div id="aiImportModal" class="modal-backdrop" hidden></div>
 </div>
 
 <script>
@@ -616,6 +688,8 @@ const COMPONENT_META = {
   condenser:      {label:'Condenser',      role:'heat'},
   combustor:      {label:'Combustor / heat addition', role:'heat'},
   'heat-exchanger':{label:'Heat exchanger / rejection', role:'heat'},
+  evaporator:     {label:'Evaporator (heat absorption)', role:'heat'},
+  cooler:         {label:'Cooler (heat rejection)', role:'heat'},
   valve:          {label:'Throttle valve', role:'none'},
   other:          {label:'Other / custom', role:'custom'},
 };
@@ -770,7 +844,11 @@ function computeSummary(st, trans, cycle){
   let allResolved = true;
   const props = cycle.fluidType==='water'?PROPS_WATER:PROPS_GAS;
   st.forEach(s=>{ if (props.filter(p=>have(s[p])).length<2) allResolved=false; });
-  const eff = qIn>0 ? wNet/qIn : undefined;
+  // A cycle that CONSUMES net work (refrigeration/heat pump) doesn't have a
+  // "thermal efficiency" in the power-cycle sense — COP is the right metric there.
+  const isRefrig = anyW && wNet<0;
+  const eff = (qIn>0 && !isRefrig) ? wNet/qIn : undefined;
+  const cop = (isRefrig && wNet!==0) ? qIn/(-wNet) : undefined;
   const bwr = wOut>0 ? (-wIn)/wOut : undefined;
   const mdot = have(cycle.mdot) ? Number(cycle.mdot) : undefined;
   let moistureWarning = null;
@@ -780,7 +858,7 @@ function computeSummary(st, trans, cycle){
       if (t && t.component==='turbine' && have(s.x) && s.x<0.88) moistureWarning = `State ${i+1}: turbine-exit quality x=${s.x.toFixed(3)} is below the ~0.88 erosion guideline — excessive moisture.`;
     });
   }
-  return { wNet, qIn, qOut, wOut, wIn, eff, bwr, allResolved, anyW, anyQ, mdot,
+  return { wNet, qIn, qOut, wOut, wIn, eff, cop, isRefrig, bwr, allResolved, anyW, anyQ, mdot,
     powerKW: mdot!==undefined? wNet*mdot: undefined, qInKW: mdot!==undefined? qIn*mdot: undefined,
     moistureWarning };
 }
@@ -897,6 +975,23 @@ const PRESETS = {
     ],
     mdot: 0.1,
   },
+  gasRefrig: {
+    label: 'Gas refrigeration cycle (reversed Brayton)', fluidType:'air', numStates:4,
+    note: 'Bell-Coleman / reversed-Brayton refrigeration cycle: compressor → cooler (rejects heat to ambient) → expander (produces cooling, replacing a throttle valve) → evaporator (absorbs heat from the refrigerated space). No phase change — this uses air, not a real refrigerant like R-134a (that would need a separate fluid property model this MVP doesn\'t implement yet).',
+    states: [
+      {P:100, T:-10},
+      {P:400},
+      {T:30},
+      {P:100},
+    ],
+    transitions: [
+      T('isentropic','compressor',{eff:0.85}),
+      T('isobaric','cooler'),
+      T('isentropic','expansion',{eff:0.80}),
+      T('isobaric','evaporator'),
+    ],
+    mdot: 1,
+  },
   custom: {
     label: 'Custom cycle', fluidType:'water', numStates:4,
     note: 'Build your own cycle: pick a fluid, number of states, and the process/component for each leg.',
@@ -944,6 +1039,7 @@ const COMPONENT_OPTS = [
   ['turbine','Turbine'],['expansion','Expansion (piston)'],
   ['compressor','Compressor'],['pump','Pump'],['compression','Compression (piston)'],
   ['boiler','Boiler'],['condenser','Condenser'],['combustor','Combustor'],
+  ['evaporator','Evaporator'],['cooler','Cooler'],
   ['heat-exchanger','Heat exchanger'],['valve','Valve (throttle)'],['other','Other'],
 ];
 
@@ -956,6 +1052,7 @@ function fmtNum(v, digits){
   digits = digits===undefined?3:digits;
   const av = Math.abs(v);
   if (av!==0 && (av<0.001||av>=100000)) return v.toExponential(3);
+  if (av!==0 && av<1) digits = Math.min(6, Math.max(digits, 3-Math.floor(Math.log10(av))));
   return v.toLocaleString(undefined,{maximumFractionDigits:digits, minimumFractionDigits:0});
 }
 
@@ -1089,6 +1186,9 @@ function labelSpan(text){ const s=document.createElement('span'); s.style.fontSi
 function recompute(){
   ensureArrays();
   lastResult = TS.cycle.solve(app);
+  const N = app.numStates;
+  lastResult.transitionSamples = app.transitions.slice(0,N).map((t,i)=>
+    sampleTransitionStates(app.fluidType, lastResult.states[i], lastResult.states[(i+1)%N], t));
   renderOutputs();
 }
 function renderOutputs(){
@@ -1113,12 +1213,13 @@ function renderOutputs(){
   });
 
   const sg=document.getElementById('summaryGrid'); sg.innerHTML='';
-  sg.appendChild(statEl('Net work', sum.anyW?fmtNum(sum.wNet,2)+' kJ/kg':'—', 'accent'));
-  sg.appendChild(statEl('Heat in', sum.anyQ?fmtNum(sum.qIn,2)+' kJ/kg':'—', 'maroon'));
-  sg.appendChild(statEl('Heat out', sum.anyQ?fmtNum(sum.qOut,2)+' kJ/kg':'—', 'navy'));
-  sg.appendChild(statEl('Thermal efficiency', sum.eff!==undefined?(sum.eff*100).toFixed(2)+'%':'—', 'accent'));
+  sg.appendChild(statEl(sum.isRefrig?'Net work input':'Net work', sum.anyW?fmtNum(Math.abs(sum.wNet),2)+' kJ/kg':'—', 'accent'));
+  sg.appendChild(statEl(sum.isRefrig?'Heat absorbed':'Heat in', sum.anyQ?fmtNum(sum.qIn,2)+' kJ/kg':'—', 'maroon'));
+  sg.appendChild(statEl(sum.isRefrig?'Heat rejected':'Heat out', sum.anyQ?fmtNum(sum.qOut,2)+' kJ/kg':'—', 'navy'));
+  if (sum.isRefrig) sg.appendChild(statEl('COP (cooling)', sum.cop!==undefined?sum.cop.toFixed(2):'—', 'accent'));
+  else sg.appendChild(statEl('Thermal efficiency', sum.eff!==undefined?(sum.eff*100).toFixed(2)+'%':'—', 'accent'));
   sg.appendChild(statEl('Back work ratio', sum.bwr!==undefined?sum.bwr.toFixed(3):'—'));
-  if (have(sum.mdot)) sg.appendChild(statEl('Net power', have(sum.powerKW)?fmtNum(sum.powerKW,1)+' kW':'—', 'accent'));
+  if (have(sum.mdot)) sg.appendChild(statEl(sum.isRefrig?'Power input':'Net power', have(sum.powerKW)?fmtNum(Math.abs(sum.powerKW),1)+' kW':'—', 'accent'));
 
   let html = '<table class="out-table"><thead><tr><th>State</th>';
   props.forEach(p=>{ html += `<th>${PROP_META[p].label}<br><span style="font-weight:400;text-transform:none;">${PROP_META[p].unit}</span></th>`; });
@@ -1140,38 +1241,59 @@ function bannerEl(kind, text){ const d=document.createElement('div'); d.classNam
 function statEl(label, value, cls){ const d=document.createElement('div'); d.className='stat'+(cls?' '+cls:''); d.innerHTML=`<div class="stat-label">${label}</div><div class="stat-value">${value}</div>`; return d; }
 
 /* ---------------------------- plotting (custom SVG) ---------------------------- */
+const PROCESS_LABEL_MAP = Object.fromEntries(PROCESS_OPTS);
+const COMPONENT_LABEL_MAP = Object.fromEntries(COMPONENT_OPTS);
+
+// Sample ~15 intermediate full states along one transition's actual process path
+// (not just a straight line between endpoints) so curved processes — isobaric and
+// isochoric heat transfer especially — trace their real shape through the diagrams,
+// including crossing the two-phase dome correctly. Isentropic/isothermal legs are
+// exact straight lines in T-s anyway, so the fallback below already handles them.
+function sampleTransitionStates(fluidType, si, sj, t){
+  const solve = known => fluidType==='water' ? TS.steam.solveState(known) : TS.gas.solveState(fluidType, known);
+  const N = 14, pts = [];
+  function pushFull(known){ const r = solve(known); if (r && !r.error) pts.push(r); }
+  if (t.process==='isobaric' && have(si.P) && have(sj.P) && have(si.h) && have(sj.h)){
+    for (let k=0;k<=N;k++) pushFull({P:si.P, h: si.h+(sj.h-si.h)*k/N});
+  } else if (t.process==='isochoric' && have(si.v) && have(sj.v) && have(si.u) && have(sj.u)){
+    for (let k=0;k<=N;k++) pushFull({v:si.v, u: si.u+(sj.u-si.u)*k/N});
+  } else if (t.process==='isenthalpic' && have(si.h) && have(sj.h) && have(si.s) && have(sj.s)){
+    for (let k=0;k<=N;k++) pushFull({h:si.h, s: si.s+(sj.s-si.s)*k/N});
+  } else if (t.process==='polytropic' && fluidType!=='water' && have(t.n) && have(si.v) && have(sj.v) && have(si.P)){
+    const n = Number(t.n), g = TS.gas.GASES[fluidType];
+    for (let k=0;k<=N;k++){
+      const v = si.v*Math.pow(sj.v/si.v, k/N);
+      const P = si.P*Math.pow(si.v/v, n);
+      pushFull({P, T: P*v/g.R - 273.15});
+    }
+  }
+  return pts.length>=2 ? pts : [si, sj];
+}
+
 function renderPlots(res){
   const wrap=document.getElementById('plots'); wrap.innerHTML='';
   const isWater = app.fluidType==='water';
-  wrap.appendChild(plotCard('Temperature – Entropy (T–s)', buildTsSvg(res, isWater)));
-  wrap.appendChild(plotCard('Pressure – Specific volume (P–v)', buildPvSvg(res, isWater)));
-  if (isWater) wrap.appendChild(plotCard('Enthalpy – Entropy (h–s, Mollier)', buildHsSvg(res)));
+  wrap.appendChild(plotCard('Temperature – Entropy (T–s)', buildDiagram(res,'s','T',{xLabel:'s (kJ/kg·K)', yLabel:'T (°C)'})));
+  wrap.appendChild(plotCard('Pressure – Specific volume (P–v)', buildDiagram(res,'v','P',{xLabel:'v (m³/kg)', yLabel:'P (kPa)', xLog:true, yLog:true})));
+  if (isWater) wrap.appendChild(plotCard('Enthalpy – Entropy (h–s, Mollier)', buildDiagram(res,'s','h',{xLabel:'s (kJ/kg·K)', yLabel:'h (kJ/kg)'})));
 }
 function plotCard(title, svg){
   const d=document.createElement('div'); d.className='plot-card';
   const h=document.createElement('h3'); h.textContent=title; d.appendChild(h);
   d.insertAdjacentHTML('beforeend', svg);
+  wireTooltips(d);
   return d;
 }
-function pointsFrom(res, xProp, yProp){
-  return res.states.map((s,i)=>({x:s[xProp], y:s[yProp], label:String(i+1)})).filter(p=>have(p.x)&&have(p.y));
-}
-function buildTsSvg(res, isWater){
-  const pts = pointsFrom(res,'s','T');
-  if (!pts.length) return emptyPlotMsg();
-  return buildXYPlot(pts, isWater?buildSteamDome('s','T'):null, {xLabel:'s (kJ/kg·K)', yLabel:'T (°C)'});
-}
-function buildPvSvg(res, isWater){
-  const pts = pointsFrom(res,'v','P');
-  if (!pts.length) return emptyPlotMsg();
-  return buildXYPlot(pts, isWater?buildSteamDome('v','P'):null, {xLabel:'v (m³/kg)', yLabel:'P (kPa)', xLog:true, yLog:true});
-}
-function buildHsSvg(res){
-  const pts = pointsFrom(res,'s','h');
-  if (!pts.length) return emptyPlotMsg();
-  return buildXYPlot(pts, buildSteamDome('s','h'), {xLabel:'s (kJ/kg·K)', yLabel:'h (kJ/kg)'});
-}
 function emptyPlotMsg(){ return '<div style="font-size:12px;color:var(--ink-faint);padding:26px 10px;text-align:center;">Not enough resolved states yet — fill in more properties to see this diagram.</div>'; }
+
+function buildDiagram(res, xProp, yProp, opts){
+  const isWater = app.fluidType==='water';
+  const cyclePts = res.states.map((s,i)=>({x:s[xProp], y:s[yProp], idx:i}));
+  if (!cyclePts.some(p=>have(p.x)&&have(p.y))) return emptyPlotMsg();
+  const segPaths = res.transitionSamples.map(samples => samples.map(p=>({x:p[xProp], y:p[yProp]})));
+  const dome = isWater ? buildSteamDome(xProp, yProp) : null;
+  return renderPlotSVG({cyclePts, segPaths, dome, states:res.states, transitions:res.transitions, opts});
+}
 
 let domeCache = {};
 function buildSteamDome(xProp, yProp){
@@ -1179,14 +1301,14 @@ function buildSteamDome(xProp, yProp){
   if (domeCache[key]) return domeCache[key];
   function pickVal(prop, T, p, side){ if (prop==='T') return T-273.15; if (prop==='P') return p*1000; return side[prop]; }
   const liq=[], vap=[];
-  const Tmin=273.16+0.5, Tmax=647.096-0.05, N=60;
+  const Tmin=273.16+0.5, Tmax=647.096-0.05, N=90;
   for (let k=0;k<=N;k++){
     const T = Tmin + (Tmax-Tmin)*k/N;
     const sat = TS.steam.satAtT(T);
     liq.push({x:pickVal(xProp,T,sat.p,sat.liq), y:pickVal(yProp,T,sat.p,sat.liq)});
     vap.push({x:pickVal(xProp,T,sat.p,sat.vap), y:pickVal(yProp,T,sat.p,sat.vap)});
   }
-  domeCache[key]=[liq,vap];
+  domeCache[key]={liq,vap};
   return domeCache[key];
 }
 function svgScale(domain, range, log){
@@ -1214,18 +1336,78 @@ function logTicks(domain){
 }
 function linTicks(domain, n){ const arr=[]; for(let i=0;i<=n;i++) arr.push(domain[0]+(domain[1]-domain[0])*i/n); return arr; }
 
-function buildXYPlot(cyclePts, domeSeries, opts){
-  const W=440, H=300, M={l:54,r:14,t:12,b:36};
+// Catmull-Rom-to-cubic-Bezier: smooth, continuous curve through a point list (no
+// external charting lib needed). Used for both the dome outline and process paths.
+function smoothPathD(pts){
+  if (pts.length<2) return '';
+  if (pts.length===2) return `M${pts[0].x.toFixed(2)},${pts[0].y.toFixed(2)} L${pts[1].x.toFixed(2)},${pts[1].y.toFixed(2)}`;
+  let d = `M${pts[0].x.toFixed(2)},${pts[0].y.toFixed(2)}`;
+  for (let i=0;i<pts.length-1;i++){
+    const p0=pts[i-1]||pts[i], p1=pts[i], p2=pts[i+1], p3=pts[i+2]||p2;
+    const c1x=p1.x+(p2.x-p0.x)/6, c1y=p1.y+(p2.y-p0.y)/6;
+    const c2x=p2.x-(p3.x-p1.x)/6, c2y=p2.y-(p3.y-p1.y)/6;
+    d += ` C${c1x.toFixed(2)},${c1y.toFixed(2)} ${c2x.toFixed(2)},${c2y.toFixed(2)} ${p2.x.toFixed(2)},${p2.y.toFixed(2)}`;
+  }
+  return d;
+}
+function polylineLength(pts){ let L=0; for(let i=1;i<pts.length;i++) L+=Math.hypot(pts[i].x-pts[i-1].x, pts[i].y-pts[i-1].y); return L; }
+function pointAtFraction(pts, frac){
+  const total = polylineLength(pts);
+  if (total===0) return {x:pts[0].x, y:pts[0].y, angle:0};
+  const target = total*frac; let acc=0;
+  for (let i=1;i<pts.length;i++){
+    const segLen = Math.hypot(pts[i].x-pts[i-1].x, pts[i].y-pts[i-1].y);
+    if (acc+segLen >= target || i===pts.length-1){
+      const t = segLen>0 ? (target-acc)/segLen : 0;
+      return {
+        x: pts[i-1].x+(pts[i].x-pts[i-1].x)*t, y: pts[i-1].y+(pts[i].y-pts[i-1].y)*t,
+        angle: Math.atan2(pts[i].y-pts[i-1].y, pts[i].x-pts[i-1].x)
+      };
+    }
+    acc+=segLen;
+  }
+  return {x:pts[pts.length-1].x, y:pts[pts.length-1].y, angle:0};
+}
+function arrowMarker(x,y,angle){
+  const len=8, wid=3;
+  const tipX=x+Math.cos(angle)*len*0.6, tipY=y+Math.sin(angle)*len*0.6;
+  const backX=x-Math.cos(angle)*len*0.4, backY=y-Math.sin(angle)*len*0.4;
+  const px=Math.cos(angle+Math.PI/2)*wid, py=Math.sin(angle+Math.PI/2)*wid;
+  return `<polygon points="${tipX.toFixed(1)},${tipY.toFixed(1)} ${(backX+px).toFixed(1)},${(backY+py).toFixed(1)} ${(backX-px).toFixed(1)},${(backY-py).toFixed(1)}" fill="var(--maroon)"/>`;
+}
+function escapeHtml(str){ return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function stateTooltipLines(i, st){
+  const props = app.fluidType==='water'?UI_PROPS.water:UI_PROPS.gas;
+  const lines = [`State ${i+1}`];
+  props.forEach(p=>{ if (have(st[p])) lines.push(`${PROP_META[p].label} = ${fmtNum(st[p], p==='x'?3:2)}${p==='x'?'':' '+PROP_META[p].unit}`); });
+  if (lines.length===1) lines.push('Not enough info yet');
+  return lines;
+}
+function transitionTooltipLines(i, j, t, tc){
+  const label = (PROCESS_LABEL_MAP[t.process]||t.process) + (t.component ? ' · '+(COMPONENT_LABEL_MAP[t.component]||t.component) : '');
+  const lines = [`${i+1} → ${j+1}: ${label}`];
+  if (have(t.eff)) lines.push(`η = ${(Number(t.eff)*100).toFixed(0)}%`);
+  if (have(tc.Q)) lines.push(`q = ${fmtNum(tc.Q,1)} kJ/kg`);
+  if (have(tc.W)) lines.push(`w = ${fmtNum(tc.W,1)} kJ/kg`);
+  if (lines.length===1) lines.push('Not enough info yet to compute q, w');
+  return lines;
+}
+
+function renderPlotSVG({cyclePts, segPaths, dome, states, transitions, opts}){
+  const W=460, H=320, M={l:56,r:16,t:14,b:38};
   const plotW=W-M.l-M.r, plotH=H-M.t-M.b;
-  const allX = cyclePts.map(p=>p.x).concat(domeSeries?domeSeries.flatMap(s=>s.map(p=>p.x)):[]);
-  const allY = cyclePts.map(p=>p.y).concat(domeSeries?domeSeries.flatMap(s=>s.map(p=>p.y)):[]);
-  const finiteX = allX.filter(v=>isFinite(v)), finiteY = allY.filter(v=>isFinite(v));
-  const canLogX = opts.xLog && Math.min(...finiteX)>0 && Math.max(...finiteX)/Math.max(Math.min(...finiteX),1e-9) > 8;
-  const canLogY = opts.yLog && Math.min(...finiteY)>0 && Math.max(...finiteY)/Math.max(Math.min(...finiteY),1e-9) > 8;
-  const xDomain = canLogX? [Math.min(...finiteX)*0.6, Math.max(...finiteX)*1.6] : niceDomain(finiteX);
-  const yDomain = canLogY? [Math.min(...finiteY)*0.6, Math.max(...finiteY)*1.6] : niceDomain(finiteY);
+  const validCyclePts = cyclePts.filter(p=>have(p.x)&&have(p.y));
+  const domeFlat = dome ? dome.liq.concat(dome.vap) : [];
+  const allX = validCyclePts.map(p=>p.x).concat(segPaths.flatMap(s=>s.map(p=>p.x))).concat(domeFlat.map(p=>p.x)).filter(isFinite);
+  const allY = validCyclePts.map(p=>p.y).concat(segPaths.flatMap(s=>s.map(p=>p.y))).concat(domeFlat.map(p=>p.y)).filter(isFinite);
+  if (!allX.length || !allY.length) return emptyPlotMsg();
+  const canLogX = opts.xLog && Math.min(...allX)>0 && Math.max(...allX)/Math.max(Math.min(...allX),1e-9) > 8;
+  const canLogY = opts.yLog && Math.min(...allY)>0 && Math.max(...allY)/Math.max(Math.min(...allY),1e-9) > 8;
+  const xDomain = canLogX? [Math.min(...allX)*0.6, Math.max(...allX)*1.6] : niceDomain(allX);
+  const yDomain = canLogY? [Math.min(...allY)*0.6, Math.max(...allY)*1.6] : niceDomain(allY);
   const sx = svgScale(xDomain,[0,plotW],canLogX);
   const sy = svgScale(yDomain,[plotH,0],canLogY);
+  const proj = p => ({x:sx(p.x), y:sy(p.y)});
 
   let s = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
   s += `<g transform="translate(${M.l},${M.t})">`;
@@ -1239,27 +1421,82 @@ function buildXYPlot(cyclePts, domeSeries, opts){
     s+=`<text x="-6" y="${(Y+3).toFixed(1)}" font-size="9" fill="var(--ink-faint)" text-anchor="end">${fmtAxisNum(v)}</text>`; });
   s+=`<rect x="0" y="0" width="${plotW}" height="${plotH}" fill="none" stroke="var(--line-strong)"/>`;
 
-  if (domeSeries){
-    domeSeries.forEach(series=>{
-      const pts = series.filter(p=>isFinite(p.x)&&isFinite(p.y));
-      if (pts.length<2) return;
-      const d = pts.map((p,idx)=>(idx===0?'M':'L')+sx(p.x).toFixed(1)+','+sy(p.y).toFixed(1)).join(' ');
-      s+=`<path d="${d}" fill="none" stroke="var(--ink-faint)" stroke-width="1.25" stroke-dasharray="3,2"/>`;
-    });
+  // saturation dome: liquid branch + vapor branch drawn as ONE continuous smooth
+  // curve (liquid up to the critical point, straight into vapor back down) so
+  // there's no artificial gap or jagged joint at the top.
+  if (dome){
+    const continuous = dome.liq.concat(dome.vap.slice().reverse()).filter(p=>isFinite(p.x)&&isFinite(p.y)).map(proj);
+    if (continuous.length>1) s += `<path d="${smoothPathD(continuous)}" fill="none" stroke="var(--ink-faint)" stroke-width="1.3" opacity="0.8"/>`;
   }
-  if (cyclePts.length>1){
-    const d = cyclePts.map((p,idx)=>(idx===0?'M':'L')+sx(p.x).toFixed(1)+','+sy(p.y).toFixed(1)).join(' ')+' Z';
-    s+=`<path d="${d}" fill="var(--navy)" fill-opacity="0.07" stroke="var(--maroon)" stroke-width="2"/>`;
+
+  if (validCyclePts.length>2){
+    const d = validCyclePts.map((p,i)=>(i===0?'M':'L')+sx(p.x).toFixed(1)+','+sy(p.y).toFixed(1)).join(' ')+' Z';
+    s += `<path d="${d}" fill="var(--navy)" fill-opacity="0.06" stroke="none"/>`;
   }
-  cyclePts.forEach(p=>{
+
+  segPaths.forEach((seg,i)=>{
+    const j=(i+1)%cyclePts.length;
+    const pts = seg.filter(p=>isFinite(p.x)&&isFinite(p.y)).map(proj);
+    if (pts.length<2) return;
+    const d = smoothPathD(pts);
+    const mid = pointAtFraction(pts, 0.52);
+    const tc = transitions[i]||{};
+    const tip = escapeHtml(JSON.stringify(transitionTooltipLines(i,j,app.transitions[i]||{},tc)));
+    s += `<path class="seg-hit" data-tip="${tip}" d="${d}" fill="none" stroke="transparent" stroke-width="14"/>`;
+    s += `<path class="seg-line" d="${d}" fill="none" stroke="var(--maroon)" stroke-width="2"/>`;
+    s += arrowMarker(mid.x, mid.y, mid.angle);
+  });
+
+  const cx0 = validCyclePts.length ? validCyclePts.reduce((a,p)=>a+sx(p.x),0)/validCyclePts.length : plotW/2;
+  const cy0 = validCyclePts.length ? validCyclePts.reduce((a,p)=>a+sy(p.y),0)/validCyclePts.length : plotH/2;
+  // states can nearly coincide on screen (e.g. a pump barely changes h) — cluster
+  // by screen proximity and fan their labels apart instead of stacking them.
+  const screenPts = cyclePts.map((p,i)=> (have(p.x)&&have(p.y)) ? {i, X:sx(p.x), Y:sy(p.y)} : null).filter(Boolean);
+  const clusterAngle = {};
+  screenPts.forEach(p=>{
+    const group = screenPts.filter(q=>Math.hypot(q.X-p.X,q.Y-p.Y)<11).sort((a,b)=>a.i-b.i);
+    if (group.length>1){ const pos=group.findIndex(g=>g.i===p.i); clusterAngle[p.i]=(pos-(group.length-1)/2)*0.68; }
+  });
+  cyclePts.forEach((p,i)=>{
+    if (!have(p.x)||!have(p.y)) return;
     const X=sx(p.x), Y=sy(p.y);
-    s+=`<circle cx="${X.toFixed(1)}" cy="${Y.toFixed(1)}" r="4.5" fill="var(--bg-elev)" stroke="var(--navy)" stroke-width="2"/>`;
-    s+=`<text x="${(X+7).toFixed(1)}" y="${(Y-6).toFixed(1)}" font-size="10" font-weight="700" fill="var(--ink)">${p.label}</text>`;
+    let dx=X-cx0, dy=Y-cy0; const len=Math.hypot(dx,dy)||1; dx/=len; dy/=len;
+    const angle = Math.atan2(dy,dx) + (clusterAngle[i]||0);
+    const lx = X+Math.cos(angle)*17, ly = Y+Math.sin(angle)*17;
+    const tip = escapeHtml(JSON.stringify(stateTooltipLines(i, states[i]||{})));
+    s += `<circle class="state-dot" data-tip="${tip}" cx="${X.toFixed(1)}" cy="${Y.toFixed(1)}" r="5" fill="var(--bg-elev)" stroke="var(--navy)" stroke-width="2.25"/>`;
+    s += `<text x="${lx.toFixed(1)}" y="${(ly+3.5).toFixed(1)}" font-size="11" font-weight="800" fill="var(--ink)" text-anchor="middle">${i+1}</text>`;
   });
   s += `<text x="${plotW/2}" y="${plotH+31}" font-size="10" fill="var(--ink-dim)" text-anchor="middle">${opts.xLabel}</text>`;
   s += `<text x="${-plotH/2}" y="-40" font-size="10" fill="var(--ink-dim)" text-anchor="middle" transform="rotate(-90)">${opts.yLabel}</text>`;
   s += '</g></svg>';
   return s;
+}
+
+/* ---------------------------- hover tooltips ---------------------------- */
+function wireTooltips(container){
+  const tip = document.getElementById('tooltip');
+  container.querySelectorAll('[data-tip]').forEach(el=>{
+    el.addEventListener('pointerenter', e=>showTooltip(e, el));
+    el.addEventListener('pointermove', positionTooltip);
+    el.addEventListener('pointerleave', ()=>{ tip.hidden=true; });
+  });
+}
+function showTooltip(e, el){
+  const tip = document.getElementById('tooltip');
+  let lines; try { lines = JSON.parse(el.dataset.tip); } catch(err){ lines=[String(el.dataset.tip||'')]; }
+  tip.innerHTML = `<b>${lines[0]}</b>` + lines.slice(1).map(l=>{
+    const idx = l.indexOf(' = ');
+    return idx>0 ? `<div class="tt-row"><span>${l.slice(0,idx)}</span><span>${l.slice(idx+3)}</span></div>` : `<div>${l}</div>`;
+  }).join('');
+  tip.hidden = false;
+  positionTooltip(e);
+}
+function positionTooltip(e){
+  const tip = document.getElementById('tooltip');
+  if (tip.hidden) return;
+  tip.style.left = e.clientX+'px';
+  tip.style.top = e.clientY+'px';
 }
 
 /* ---------------------------- theme + init ---------------------------- */
@@ -1276,8 +1513,184 @@ function initTheme(){
   });
 }
 
+/* ---------------------------- AI import (screenshot → cycle) ---------------------------- */
+let sampleAPI = null, sampleImgLimits = null, pendingImageBlob = null;
+
+async function initAIImport(){
+  try {
+    if (!window.claude || typeof window.claude.use !== 'function') return;
+    sampleAPI = await window.claude.use('sample');
+  } catch(e) { sampleAPI = null; }
+  if (!sampleAPI) return;
+  document.getElementById('aiImportBtn').hidden = false;
+  try { sampleImgLimits = (await sampleAPI.limits()).images || null; } catch(e) { sampleImgLimits = null; }
+}
+
+function buildAIImportPrompt(text, hasImage){
+  const gasKeys = Object.keys(TS.gas.GASES).map(k=>`"${k}"`).join(', ');
+  return `You are reading a thermodynamics cycle problem (from a textbook screenshot and/or the text below) and extracting its setup into structured JSON for a cycle-solver app.
+
+Return ONLY a JSON object with this exact shape, nothing else:
+{
+  "fluidType": "water" | ${gasKeys},
+  "numStates": <integer, 3 to 8>,
+  "states": [ { "P"?: number, "T"?: number, "h"?: number, "s"?: number, "v"?: number, "u"?: number, "x"?: number }, ... exactly numStates objects, one per state in cyclic order ],
+  "transitions": [ { "process": "isentropic"|"isobaric"|"isochoric"|"isothermal"|"isenthalpic"|"polytropic"|"none", "component": "turbine"|"expansion"|"compressor"|"pump"|"compression"|"boiler"|"condenser"|"combustor"|"evaporator"|"cooler"|"heat-exchanger"|"valve"|"other", "eff"?: number, "vRatio"?: number, "pRatio"?: number, "n"?: number }, ... exactly numStates objects — transitions[i] connects states[i] to states[(i+1) % numStates] ],
+  "mdot": number | null,
+  "summary": "<one sentence: what cycle this is and what's being asked>"
+}
+
+Units: P in kPa, T in °C, h and u in kJ/kg, s in kJ/(kg·K), v in m³/kg, x is dryness fraction 0-1 (water only, omit for gases). Convert any other units found in the source (bar, MPa, K, etc.) into these.
+
+Rules:
+- "water" means steam/water; use the gas keys for air or a specific named ideal gas.
+- Only set a property on a state if the problem actually gives it or clearly implies it (e.g. "saturated liquid" means x=0, "saturated vapor"/"dry saturated" means x=1). Never invent or guess a value that isn't there — omit the field instead.
+- eff is isentropic efficiency (0-1) — only set it if a turbine/compressor/pump/expander efficiency is explicitly given; otherwise omit it (defaults to ideal/reversible).
+- Number states in the natural order the problem walks through the cycle (e.g. compressor or pump inlet = state 1), continuing around back to state 1.
+- If a property, or the whole problem, is genuinely unclear from the image/text, leave it out rather than guessing.
+- Reply with ONLY the JSON object — no markdown fence, no other text.
+${hasImage ? '\nThe attached image is a screenshot of the problem.' : ''}${text ? '\nAdditional context from the user:\n'+text : ''}`;
+}
+
+function applyImportedCycle(data){
+  if (!data || typeof data!=='object') throw {code:'invalid_json', message:'not an object'};
+  const fluidType = (data.fluidType==='water' || TS.gas.GASES[data.fluidType]) ? data.fluidType : 'water';
+  let numStates = Math.round(Number(data.numStates));
+  if (!isFinite(numStates)) numStates = Array.isArray(data.states) ? data.states.length : 4;
+  numStates = Math.max(3, Math.min(8, numStates||4));
+  const props = fluidType==='water' ? UI_PROPS.water : UI_PROPS.gas;
+  const states = [];
+  for (let i=0;i<numStates;i++){
+    const src = (Array.isArray(data.states) && data.states[i]) || {};
+    const st = {};
+    props.forEach(p=>{ const v=Number(src[p]); if (isFinite(v)) st[p]=v; });
+    states.push(st);
+  }
+  const validProcess = new Set(PROCESS_OPTS.map(o=>o[0]));
+  const validComponent = new Set(COMPONENT_OPTS.map(o=>o[0]));
+  const transitions = [];
+  for (let i=0;i<numStates;i++){
+    const src = (Array.isArray(data.transitions) && data.transitions[i]) || {};
+    const t = {
+      process: validProcess.has(src.process) ? src.process : 'none',
+      component: validComponent.has(src.component) ? src.component : 'other',
+    };
+    ['eff','vRatio','pRatio','n'].forEach(k=>{ const v=Number(src[k]); if (isFinite(v)) t[k]=v; });
+    transitions.push(t);
+  }
+  app = {
+    presetKey:'custom', fluidType, numStates, states, transitions,
+    mdot: isFinite(Number(data.mdot)) ? Number(data.mdot) : undefined,
+    note: (typeof data.summary==='string' && data.summary ? 'Imported — '+data.summary+'. ' : 'Imported from your screenshot/description. ')
+      + 'Double-check these values against the original problem — AI reads can miss or misread details.',
+    label: 'Custom cycle',
+  };
+  ensureArrays();
+  renderControlBar();
+  renderPipeline();
+  recompute();
+}
+
+function aiErrorMessage(e){
+  switch(e && e.code){
+    case 'not_granted': return "You declined to let this page use Claude — reload the page to be asked again.";
+    case 'sampling_disabled': return "Claude isn't available for this account right now.";
+    case 'images_unavailable': return "This view can't send images — try describing the problem in words instead.";
+    case 'image_rejected': return "That image couldn't be used — try a different file (PNG/JPEG/WebP/GIF, under 20MB).";
+    case 'rate_limited': return "Too many requests right now — wait a moment and try again.";
+    case 'invalid_json': return "Couldn't read a clean cycle out of that — try a clearer screenshot, or add a text description.";
+    case 'refused': return "Claude declined to process that — try a different image or description.";
+    case 'prompt_too_large': return "That description is too long — trim it down and try again.";
+    case 'cancelled': return "Cancelled.";
+    default: return "Something went wrong" + (e&&e.code?' ('+e.code+')':'') + " — try again.";
+  }
+}
+
+function openAIImportModal(){
+  const backdrop = document.getElementById('aiImportModal');
+  pendingImageBlob = null;
+  const canImage = !!sampleImgLimits;
+  backdrop.innerHTML = `
+    <div class="modal" role="dialog" aria-modal="true" aria-label="Import cycle from a screenshot">
+      <button class="modal-close" id="aiModalClose" type="button" aria-label="Close">✕</button>
+      <h3>Import a cycle</h3>
+      <p class="modal-sub">${canImage ? 'Upload or paste a screenshot of a textbook problem, and/or describe it below.' : 'Describe the problem below (this view can\'t send images).'} Claude fills in the cycle for you — always double-check the values before trusting them.</p>
+      ${canImage ? '<div class="drop-zone" id="dropZone" tabindex="0">Click to upload, or paste (Ctrl+V) a screenshot here</div><input type="file" id="fileInput" accept="'+sampleImgLimits.mediaTypes.join(',')+'" hidden />' : ''}
+      <textarea id="aiText" placeholder="e.g. &quot;Rankine cycle, boiler at 3 MPa / 350°C, condenser at 10 kPa, turbine isentropic efficiency 85%, pump ideal&quot;"></textarea>
+      <div class="modal-status" id="aiStatus"></div>
+      <div class="modal-actions">
+        <button class="btn-secondary" id="aiCancelBtn" type="button">Cancel</button>
+        <button class="btn-primary" id="aiGoBtn" type="button" disabled>Generate cycle</button>
+      </div>
+    </div>`;
+  backdrop.hidden = false;
+  const textArea = document.getElementById('aiText');
+  const goBtn = document.getElementById('aiGoBtn');
+  function updateGoState(){ goBtn.disabled = !(pendingImageBlob || textArea.value.trim()); }
+  function setImage(file){
+    if (!file) return;
+    pendingImageBlob = file;
+    const url = URL.createObjectURL(file);
+    const dz = document.getElementById('dropZone');
+    dz.innerHTML = `<img src="${url}" alt="Uploaded problem screenshot" /><div>${escapeHtml(file.name||'Pasted image')} — click to replace</div>`;
+    updateGoState();
+  }
+  function handlePaste(e){
+    const items = (e.clipboardData && e.clipboardData.items) || [];
+    for (const item of items) if (item.type && item.type.startsWith('image/')) { setImage(item.getAsFile()); e.preventDefault(); break; }
+  }
+  if (canImage){
+    const dz = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    dz.addEventListener('click', ()=>fileInput.click());
+    dz.addEventListener('keydown', e=>{ if (e.key==='Enter'||e.key===' '){ e.preventDefault(); fileInput.click(); } });
+    fileInput.addEventListener('change', ()=>setImage(fileInput.files[0]));
+    dz.addEventListener('dragover', e=>e.preventDefault());
+    dz.addEventListener('drop', e=>{ e.preventDefault(); setImage(e.dataTransfer.files[0]); });
+    document.addEventListener('paste', handlePaste);
+    dz.focus();
+  } else {
+    textArea.focus();
+  }
+  textArea.addEventListener('input', updateGoState);
+  document.getElementById('aiModalClose').addEventListener('click', closeAIImportModal);
+  document.getElementById('aiCancelBtn').addEventListener('click', closeAIImportModal);
+  backdrop.addEventListener('click', e=>{ if (e.target===backdrop) closeAIImportModal(); });
+  goBtn.addEventListener('click', ()=>runAIImport(handlePaste));
+}
+function closeAIImportModal(){
+  document.removeEventListener('paste', ()=>{});
+  const backdrop = document.getElementById('aiImportModal');
+  backdrop.hidden = true;
+  backdrop.innerHTML = '';
+  pendingImageBlob = null;
+}
+async function runAIImport(pasteHandler){
+  const statusEl = document.getElementById('aiStatus');
+  const goBtn = document.getElementById('aiGoBtn');
+  const textArea = document.getElementById('aiText');
+  goBtn.disabled = true;
+  statusEl.className = 'modal-status';
+  statusEl.textContent = 'Thinking… this can take up to a minute.';
+  try {
+    const prompt = buildAIImportPrompt(textArea.value.trim(), !!pendingImageBlob);
+    const opts = {modelTier:'default'};
+    if (pendingImageBlob) opts.images = pendingImageBlob;
+    const data = await sampleAPI.json(prompt, opts);
+    applyImportedCycle(data);
+    document.removeEventListener('paste', pasteHandler);
+    closeAIImportModal();
+  } catch (e) {
+    statusEl.className = 'modal-status err';
+    statusEl.textContent = aiErrorMessage(e);
+    goBtn.disabled = false;
+  }
+}
+document.getElementById('aiImportBtn').addEventListener('click', openAIImportModal);
+
 initTheme();
 loadPreset('rankine');
+initAIImport();
 </script>
 </body>
 </html>
