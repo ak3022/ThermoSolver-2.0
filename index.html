@@ -1,0 +1,1281 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>ThermoSolver</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="description" content="An interactive thermodynamic cycle solver and visualizer for students — build Rankine, Brayton, Otto, Diesel or custom cycles and watch every state update live." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23111318'/%3E%3Crect x='2' y='2' width='5' height='5' fill='%238b0000'/%3E%3Crect x='9' y='9' width='5' height='5' fill='%2300008b'/%3E%3Crect x='9' y='2' width='5' height='5' fill='%23eaeaea'/%3E%3Crect x='2' y='9' width='5' height='5' fill='%23eaeaea'/%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f3ef; --bg-elev:#ffffff; --bg-sunken:#eceae3;
+  --ink:#1d1c1a; --ink-dim:#5c5a54; --ink-faint:#8b887f;
+  --line:#dcd9d0; --line-strong:#c3bfb2;
+  --maroon:#8b0000; --maroon-ink:#ffffff; --maroon-soft:#fbe9e7;
+  --navy:#00008b; --navy-ink:#ffffff; --navy-soft:#e8e9fb;
+  --accent:#2a6f5c; --warn:#a15c00; --warn-bg:#fdf1de; --bad:#8b0000; --bad-bg:#fbe9e7;
+  --derived:#5c5a54; --user-set:#1d1c1a;
+  --shadow: 0 1px 2px rgba(20,18,14,.06), 0 4px 14px rgba(20,18,14,.05);
+  --radius:10px;
+  --mono:'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --pixel:'Press Start 2P', var(--mono);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14151a; --bg-elev:#1b1d24; --bg-sunken:#101116;
+    --ink:#eceae3; --ink-dim:#a8a59c; --ink-faint:#716e66;
+    --line:#2c2e37; --line-strong:#3c3f4b;
+    --maroon:#ff6b5f; --maroon-ink:#1a0400; --maroon-soft:#3a1512;
+    --navy:#7d8bff; --navy-ink:#050014; --navy-soft:#161a3a;
+    --accent:#5fd6b3; --warn:#e0a233; --warn-bg:#3a2c10; --bad:#ff6b5f; --bad-bg:#3a1512;
+    --derived:#a8a59c; --user-set:#f3f1ea;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14151a; --bg-elev:#1b1d24; --bg-sunken:#101116;
+  --ink:#eceae3; --ink-dim:#a8a59c; --ink-faint:#716e66;
+  --line:#2c2e37; --line-strong:#3c3f4b;
+  --maroon:#ff6b5f; --maroon-ink:#1a0400; --maroon-soft:#3a1512;
+  --navy:#7d8bff; --navy-ink:#050014; --navy-soft:#161a3a;
+  --accent:#5fd6b3; --warn:#e0a233; --warn-bg:#3a2c10; --bad:#ff6b5f; --bad-bg:#3a1512;
+  --derived:#a8a59c; --user-set:#f3f1ea;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0; overflow-x:hidden;}
+body{
+  background:var(--bg); color:var(--ink); font-family:var(--mono);
+  font-size:14px; line-height:1.5;
+}
+a{color:var(--navy);}
+::selection{background:var(--maroon); color:var(--maroon-ink);}
+
+.app-shell{max-width:1400px; margin:0 auto; padding:20px 22px 60px;}
+
+/* ---------- header / branding ---------- */
+.site-header{display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:18px;}
+.brand{display:flex; align-items:baseline; gap:2px; user-select:none;}
+.brand .px{font-family:var(--pixel); font-size:22px; letter-spacing:0px; line-height:1;}
+.brand .px.thermo{color:var(--maroon);}
+.brand .px.solver{color:var(--navy);}
+.brand-tag{font-size:11.5px; color:var(--ink-faint); margin-left:10px; padding-left:10px; border-left:2px solid var(--line); display:none;}
+@media(min-width:760px){ .brand-tag{display:inline;} }
+.header-actions{display:flex; align-items:center; gap:10px;}
+.theme-toggle, .share-btn{
+  font-family:var(--mono); font-size:12px; font-weight:600; color:var(--ink-dim);
+  background:var(--bg-elev); border:1px solid var(--line); border-radius:8px;
+  padding:7px 12px; cursor:pointer;
+}
+.theme-toggle:hover, .share-btn:hover{border-color:var(--line-strong); color:var(--ink);}
+
+/* ---------- control bar ---------- */
+.control-bar{
+  display:flex; flex-wrap:wrap; gap:10px 14px; align-items:flex-end; min-width:0;
+  background:var(--bg-elev); border:1px solid var(--line); border-radius:var(--radius);
+  padding:14px 16px; margin-bottom:16px; box-shadow:var(--shadow);
+}
+.field{display:flex; flex-direction:column; gap:4px; min-width:0; max-width:100%;}
+.field label{font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-faint); font-weight:600;}
+.field select, .field input[type=number], .field input[type=text]{
+  font-family:var(--mono); font-size:13px; color:var(--ink); background:var(--bg-sunken);
+  border:1px solid var(--line); border-radius:7px; padding:7px 8px; min-width:0;
+}
+.field select{width:min(190px, 60vw);}
+.field input[type=number]{width:88px;}
+.field select:focus, .field input:focus{outline:2px solid var(--navy); outline-offset:1px;}
+.preset-note{flex-basis:100%; font-size:12px; color:var(--ink-dim); border-top:1px dashed var(--line); padding-top:8px; margin-top:2px;}
+.preset-note b{color:var(--ink);}
+
+/* ---------- layout ---------- */
+.workspace{display:grid; grid-template-columns:minmax(0,1.05fr) minmax(0,1fr); gap:16px; align-items:start; min-width:0;}
+@media(max-width:980px){ .workspace{grid-template-columns:minmax(0,1fr);} }
+.panel{background:var(--bg-elev); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:16px; min-width:0;}
+.panel h2{font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-faint); margin:0 0 12px; font-weight:700;}
+
+/* ---------- cycle pipeline (states + transitions) ---------- */
+.pipeline{display:flex; flex-direction:column; gap:0; min-width:0;}
+.state-card{
+  border:1px solid var(--line); border-radius:9px; padding:10px 12px; background:var(--bg-sunken); min-width:0;
+}
+.state-card-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;}
+.state-badge{
+  display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px;
+  border-radius:50%; background:var(--navy); color:var(--navy-ink); font-weight:700; font-size:11.5px; flex-shrink:0;
+}
+.state-title{font-size:11.5px; color:var(--ink-dim); font-weight:600;}
+.state-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(72px,1fr)); gap:7px; min-width:0;}
+.pfield{display:flex; flex-direction:column; gap:2px; min-width:0;}
+.pfield label{font-size:9.5px; color:var(--ink-faint); font-weight:700; text-transform:uppercase;}
+.pfield input{
+  font-family:var(--mono); font-size:12.5px; padding:5px 6px; border-radius:6px;
+  border:1px solid var(--line); background:var(--bg-elev); color:var(--ink); width:100%; min-width:0;
+}
+.pfield input:focus{outline:2px solid var(--navy); outline-offset:1px;}
+.pfield.has-value input{border-color:var(--line-strong); font-weight:600;}
+.state-err{margin-top:7px; font-size:11px; color:var(--bad); background:var(--bad-bg); border-radius:6px; padding:5px 7px;}
+
+.transition-row{display:flex; align-items:center; gap:8px; padding:8px 4px; margin-left:8px; min-width:0;}
+.transition-line{width:2px; align-self:stretch; background:var(--line-strong); min-height:26px; flex-shrink:0;}
+.transition-body{
+  flex:1; display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px;
+  background:transparent; min-width:0;
+}
+.transition-body select, .transition-body input{
+  font-family:var(--mono); font-size:11.5px; padding:4px 6px; border-radius:6px;
+  border:1px solid var(--line); background:var(--bg-sunken); color:var(--ink); max-width:100%;
+}
+.transition-mini{display:flex; flex-direction:column; gap:2px;}
+.transition-mini label{font-size:9px; color:var(--ink-faint); text-transform:uppercase; font-weight:700;}
+.transition-mini input{width:64px;}
+.transition-badge{
+  font-size:10.5px; font-weight:700; padding:3px 8px; border-radius:20px; white-space:nowrap;
+  background:var(--bg-sunken); color:var(--ink-dim); border:1px solid var(--line);
+}
+.loop-note{font-size:10.5px; color:var(--ink-faint); margin:6px 0 2px 8px; font-style:italic;}
+
+/* ---------- output ---------- */
+.summary-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:10px; margin-bottom:14px;}
+.stat{background:var(--bg-sunken); border:1px solid var(--line); border-radius:9px; padding:10px 12px;}
+.stat .stat-label{font-size:10px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint); font-weight:700;}
+.stat .stat-value{font-size:19px; font-weight:700; margin-top:3px; font-variant-numeric:tabular-nums;}
+.stat.accent .stat-value{color:var(--accent);}
+.stat.maroon .stat-value{color:var(--maroon);}
+.stat.navy .stat-value{color:var(--navy);}
+.banner{border-radius:8px; padding:9px 12px; font-size:12px; margin-bottom:12px; display:flex; gap:8px; align-items:flex-start;}
+.banner.warn{background:var(--warn-bg); color:var(--warn);}
+.banner.bad{background:var(--bad-bg); color:var(--bad);}
+
+#outTableWrap{overflow-x:auto; margin-bottom:16px;}
+.out-table{width:100%; border-collapse:collapse; font-size:12px; min-width:520px;}
+.out-table th{text-align:right; font-size:9.5px; text-transform:uppercase; color:var(--ink-faint); font-weight:700; padding:4px 8px; border-bottom:1px solid var(--line-strong);}
+.out-table th:first-child, .out-table td:first-child{text-align:left;}
+.out-table td{text-align:right; padding:5px 8px; border-bottom:1px solid var(--line); font-variant-numeric:tabular-nums; color:var(--derived);}
+.out-table td.user-set{color:var(--user-set); font-weight:700;}
+.out-table tr:hover td{background:var(--bg-sunken);}
+
+.legend{display:flex; gap:14px; font-size:10.5px; color:var(--ink-faint); margin:-8px 0 14px;}
+.legend span{display:inline-flex; align-items:center; gap:5px;}
+.legend .dot{width:8px; height:8px; border-radius:50%; display:inline-block;}
+.legend .dot.set{background:var(--user-set);}
+.legend .dot.derived{background:var(--derived);}
+
+.plots{display:grid; grid-template-columns:1fr; gap:14px;}
+.plot-card{border:1px solid var(--line); border-radius:9px; padding:10px; background:var(--bg-sunken);}
+.plot-card h3{font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-faint); margin:0 0 6px;}
+.plot-card svg{width:100%; height:auto; display:block;}
+
+footer{margin-top:26px; font-size:11.5px; color:var(--ink-faint); text-align:center;}
+footer a{color:var(--ink-faint); text-decoration:underline;}
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <header class="site-header">
+    <div class="brand">
+      <span class="px thermo">Thermo</span><span class="px solver">solver</span>
+      <span class="brand-tag">learn thermo by building the cycle yourself</span>
+    </div>
+    <div class="header-actions">
+      <button class="theme-toggle" id="themeToggle" type="button">◐ theme</button>
+    </div>
+  </header>
+
+  <section class="control-bar" id="controlBar"></section>
+
+  <main class="workspace">
+    <section class="panel" id="inputPanel">
+      <h2>Cycle — states &amp; processes</h2>
+      <div class="pipeline" id="pipeline"></div>
+    </section>
+
+    <section class="panel" id="outputPanel">
+      <h2>Live results</h2>
+      <div id="banners"></div>
+      <div class="summary-grid" id="summaryGrid"></div>
+      <div class="legend"><span><i class="dot set"></i>you entered</span><span><i class="dot derived"></i>solved</span></div>
+      <div id="outTableWrap"></div>
+      <div class="plots" id="plots"></div>
+    </section>
+  </main>
+
+  <footer>ThermoSolver — an educational thermodynamic cycle visualizer. Steam properties via IAPWS-IF97 (Regions 1/2/4). Ideal-gas properties use constant (cold-air-standard) specific heats.</footer>
+</div>
+
+<script>
+'use strict';
+/* =====================================================================
+   THERMOSOLVER PROPERTY ENGINE
+   Steam: IAPWS-IF97 Region 1 (compressed/saturated liquid, T<=623.15K),
+          Region 2 (superheated vapour), Region 4 (saturation line).
+          Region 3 (near/above-critical, p>~16.5MPa & T near 623-647K)
+          is NOT implemented — flagged as out-of-range for this MVP.
+   Ideal gas: constant specific heats (cold-air-standard), the standard
+          simplification used in intro thermodynamics courses.
+   Units (internal, "engine space"): pressure MPa, temperature K,
+          h/u kJ/kg, s kJ/(kg·K), v m3/kg, x dimensionless [0,1].
+   UI-facing units differ (kPa, °C) — conversion happens at the UI layer.
+   ===================================================================== */
+const TS = {};
+
+(function(){
+
+const RW = 0.461526; // kJ/(kg K) specific gas constant for water, IAPWS-IF97
+
+// ---------------------------------------------------------------------
+// Region 1 — compressed / saturated liquid water
+// ---------------------------------------------------------------------
+const R1_I = [0,0,0,0,0,0,0,0,1,1,1,1,1,1,2,2,2,2,2,3,3,3,4,4,4,5,8,8,21,23,29,30,31,32];
+const R1_J = [-2,-1,0,1,2,3,4,5,-9,-7,-1,0,1,3,-3,0,1,3,17,-4,0,6,-5,-2,10,-8,-11,-6,-29,-31,-38,-39,-40,-41];
+const R1_n = [0.14632971213167,-0.84548187169114,-3.756360367204,3.3855169168385,-0.95791963387872,0.15772038513228,-0.016616417199501,8.1214629983568e-04,2.8319080123804e-04,-6.0706301565874e-04,-0.018990068218419,-0.032529748770505,-0.021841717175414,-5.283835796993e-05,-4.7184321073267e-04,-3.0001780793026e-04,4.7661393906987e-05,-4.4141845330846e-06,-7.2694996297594e-16,-3.1679644845054e-05,-2.8270797985312e-06,-8.5205128120103e-10,-2.2425281908e-06,-6.5171222895601e-07,-1.4341729937924e-13,-4.0516996860117e-07,-1.2734301741641e-09,-1.7424871230634e-10,-6.8762131295531e-19,1.4478307828521e-20,2.6335781662795e-23,-1.1947622640071e-23,1.8228094581404e-24,-9.3537087292458e-26];
+
+// returns {v,h,u,s,cp} for compressed/saturated liquid, p in MPa, T in K
+function region1(p, T) {
+  const Pi = p / 16.53, tau = 1386 / T;
+  let g=0, g_pi=0, g_tau=0, g_pipi=0, g_tautau=0, g_pitau=0;
+  for (let i=0;i<34;i++){
+    const I=R1_I[i], J=R1_J[i], n=R1_n[i];
+    const a = Math.pow(7.1-Pi, I), b = Math.pow(tau-1.222, J);
+    g += n*a*b;
+    g_pi += -n*I*Math.pow(7.1-Pi, I-1)*b;
+    g_tau += n*a*J*Math.pow(tau-1.222, J-1);
+    g_pipi += n*I*(I-1)*Math.pow(7.1-Pi, I-2)*b;
+    g_tautau += n*a*J*(J-1)*Math.pow(tau-1.222, J-2);
+    g_pitau += -n*I*Math.pow(7.1-Pi, I-1)*J*Math.pow(tau-1.222, J-1);
+  }
+  const v = RW*T/p*Pi*g_pi/1000;
+  const h = RW*T*tau*g_tau;
+  const u = RW*T*(tau*g_tau - Pi*g_pi);
+  const s = RW*(tau*g_tau - g);
+  const cp = -RW*tau*tau*g_tautau;
+  return {v,h,u,s,cp};
+}
+
+// ---------------------------------------------------------------------
+// Region 2 — superheated / dry saturated steam
+// ---------------------------------------------------------------------
+const R2_J0 = [0,1,-5,-4,-3,-2,-1,2,3];
+const R2_n0 = [-9.6927686500217,10.086655968018,-0.005608791128302,0.071452738081455,-0.40710498223928,1.4240819171444,-4.383951131945,-0.28408632460772,0.021268463753307];
+const R2_I = [1,1,1,1,1,2,2,2,2,2,3,3,3,3,3,4,4,4,5,6,6,6,7,7,7,8,8,9,10,10,10,16,16,18,20,20,20,21,22,23,24,24,24];
+const R2_J = [0,1,2,3,6,1,2,4,7,36,0,1,3,6,35,1,2,3,7,3,16,35,0,11,25,8,36,13,4,10,14,29,50,57,20,35,48,21,53,39,26,40,58];
+const R2_n = [-1.7731742473213e-03,-0.017834862292358,-0.045996013696365,-0.057581259083432,-0.05032527872793,-3.3032641670203e-05,-1.8948987516315e-04,-3.9392777243355e-03,-0.043797295650573,-2.6674547914087e-05,2.0481737692309e-08,4.3870667284435e-07,-3.227767723857e-05,-1.5033924542148e-03,-0.040668253562649,-7.8847309559367e-10,1.2790717852285e-08,4.8225372718507e-07,2.2922076337661e-06,-1.6714766451061e-11,-2.1171472321355e-03,-23.895741934104,-5.905956432427e-18,-1.2621808899101e-06,-0.038946842435739,1.1256211360459e-11,-8.2311340897998,1.9809712802088e-08,1.0406965210174e-19,-1.0234747095929e-13,-1.0018179379511e-09,-8.0882908646985e-11,0.10693031879409,-0.33662250574171,8.9185845355421e-25,3.0629316876232e-13,-4.2002467698208e-06,-5.9056029685639e-26,3.7826947613457e-06,-1.2768608934681e-15,7.3087610595061e-29,5.5414715350778e-17,-9.436970724121e-07];
+
+// returns {v,h,u,s,cp} for superheated/saturated vapour, p in MPa, T in K
+function region2(p, T) {
+  const Pi = p, tau = 540 / T;
+  let g0=Math.log(Pi), g0_pi=1/Pi, g0_tau=0, g0_pipi=-1/(Pi*Pi), g0_tautau=0;
+  for (let i=0;i<9;i++){
+    const J=R2_J0[i], n=R2_n0[i];
+    g0 += n*Math.pow(tau,J);
+    g0_tau += n*J*Math.pow(tau,J-1);
+    g0_tautau += n*J*(J-1)*Math.pow(tau,J-2);
+  }
+  let gr=0, gr_pi=0, gr_tau=0, gr_pipi=0, gr_tautau=0;
+  for (let i=0;i<43;i++){
+    const I=R2_I[i], J=R2_J[i], n=R2_n[i];
+    const a=Math.pow(Pi,I), b=Math.pow(tau-0.5,J);
+    gr += n*a*b;
+    gr_pi += n*I*Math.pow(Pi,I-1)*b;
+    gr_tau += n*a*J*Math.pow(tau-0.5,J-1);
+    gr_pipi += n*I*(I-1)*Math.pow(Pi,I-2)*b;
+    gr_tautau += n*a*J*(J-1)*Math.pow(tau-0.5,J-2);
+  }
+  const g_pi = g0_pi+gr_pi, g_tau = g0_tau+gr_tau, g_tautau = g0_tautau+gr_tautau;
+  const v = RW*T/p*Pi*g_pi/1000;
+  const h = RW*T*tau*g_tau;
+  const u = RW*T*(tau*g_tau - Pi*g_pi);
+  const s = RW*(tau*g_tau - (g0+gr));
+  const cp = -RW*tau*tau*g_tautau;
+  return {v,h,u,s,cp};
+}
+
+// ---------------------------------------------------------------------
+// Region 4 — saturation line (auxiliary backward equations, exact/non-iterative)
+// ---------------------------------------------------------------------
+function psat_T(T) { // T in K -> MPa
+  const teta = T - 0.23855557567849/(T-650.17534844798);
+  const a = teta*teta + 1167.0521452767*teta - 724213.16703206;
+  const B = -17.073846940092*teta*teta + 12020.82470247*teta - 3232555.0322333;
+  const C = 14.91510861353*teta*teta - 4823.2657361591*teta + 405113.40542057;
+  return Math.pow(2*C/(-B+Math.sqrt(B*B-4*a*C)), 4);
+}
+function Tsat_p(p) { // p in MPa -> K
+  const beta = Math.pow(p,0.25);
+  const E = beta*beta - 17.073846940092*beta + 14.91510861353;
+  const F = 1167.0521452767*beta*beta + 12020.82470247*beta - 4823.2657361591;
+  const G = -724213.16703206*beta*beta - 3232555.0322333*beta + 405113.40542057;
+  const D = 2*G/(-F-Math.sqrt(F*F-4*E*G));
+  return (650.17534844798 + D - Math.sqrt(Math.pow(650.17534844798+D,2) - 4*(-0.23855557567849+650.17534844798*D)))/2;
+}
+// saturated liquid/vapour properties at a given Tsat (valid region1/2 apply since Tsat<=623.15K for p<=16.529 MPa)
+function satAtT(T) {
+  const p = psat_T(T);
+  return { p, T, liq: region1(p,T), vap: region2(p,T) };
+}
+function satAtP(p) {
+  const T = Tsat_p(p);
+  return { p, T, liq: region1(p,T), vap: region2(p,T) };
+}
+
+const PCRIT = 22.06395, TCRIT = 647.096, PMIN = 0.000611657, TMIN = 273.16;
+function B23p_T(T){ return 348.05185628969 - 1.1671859879975*T + 1.0192970039326e-3*T*T; }
+function region3ish(p, T){ // true if (p,T) falls in the unsupported near/above-critical region 3
+  if (p <= 16.5292) return false;
+  if (T < 623.15) return false;
+  return T <= B23p_T(p) + 5; // small margin
+}
+
+function newton1D(f, x0, lo, hi, tol) {
+  tol = tol || 1e-9;
+  let x = Math.min(Math.max(x0, lo), hi);
+  for (let i=0;i<60;i++){
+    const fx = f(x);
+    if (!isFinite(fx)) break;
+    if (Math.abs(fx) < tol) return x;
+    const step = Math.max(Math.abs(x)*1e-6, 1e-8);
+    const dfx = (f(x+step)-f(x-step))/(2*step);
+    if (!isFinite(dfx) || dfx===0) break;
+    let xn = x - fx/dfx;
+    if (!isFinite(xn) || xn < lo || xn > hi) xn = (x + (fx>0? lo : hi))/2;
+    if (Math.abs(xn-x) < 1e-10*Math.max(1,Math.abs(x))) return xn;
+    x = xn;
+  }
+  // bisection fallback
+  let a=lo,b=hi,fa=f(a),fb=f(b);
+  if (!isFinite(fa)||!isFinite(fb)||fa*fb>0) return x;
+  for (let i=0;i<200;i++){
+    const m=(a+b)/2, fm=f(m);
+    if (!isFinite(fm)) break;
+    if (Math.abs(fm)<tol) return m;
+    if (fa*fm<0){b=m;fb=fm;} else {a=m;fa=fm;}
+  }
+  return (a+b)/2;
+}
+
+function have(v){ return v!==undefined && v!==null && v!==''; }
+
+// General steam state solver. `known` uses UI units: P kPa, T degC, h kJ/kg, s kJ/(kg K), v m3/kg, u kJ/kg, x [0,1]
+function solveSteamState(known) {
+  const k = {};
+  if (have(known.P)) k.P = known.P/1000; // -> MPa
+  if (have(known.T)) k.T = known.T+273.15; // -> K
+  ['h','s','v','u','x'].forEach(p=>{ if (have(known[p])) k[p]=Number(known[p]); });
+
+  function fromPT(p,T){
+    if (region3ish(p,T)) return {error:'out-of-range', note:'Near/above the critical point (Region 3) is not supported in this MVP — try a lower pressure or temperature.'};
+    const Tsat = (p>=PMIN && p<=PCRIT) ? Tsat_p(p) : null;
+    const r = (Tsat!==null && T < Tsat) ? region1(p,T) : region2(p,T);
+    return {P:p*1000, T:T-273.15, h:r.h, s:r.s, v:r.v, u:r.u, x: (Tsat!==null && T<Tsat)?0:( (Tsat!==null && Math.abs(T-Tsat)<1e-6)?null:1), cp:r.cp, region:(Tsat!==null&&T<Tsat)?1:2};
+  }
+  function satMix(p, propGetter, xVal){
+    const s = satAtP(p);
+    const fl = propGetter(s.liq), fv = propGetter(s.vap);
+    return fl + xVal*(fv-fl);
+  }
+  function fullFromSat(p, xVal){
+    const s = satAtP(p);
+    const mix = (a,b)=> a + xVal*(b-a);
+    return {P:p*1000, T:s.T-273.15, h:mix(s.liq.h,s.vap.h), s:mix(s.liq.s,s.vap.s), v:mix(s.liq.v,s.vap.v), u:mix(s.liq.u,s.vap.u), x:xVal, region:4};
+  }
+
+  // P & T
+  if (have(k.P) && have(k.T)) {
+    const Tsat = (k.P>=PMIN && k.P<=PCRIT) ? Tsat_p(k.P) : null;
+    if (Tsat!==null && Math.abs(k.T-Tsat) < 1e-4*Tsat) {
+      return {error:'ambiguous', note:'At this pressure, this temperature is the saturation temperature — state is two-phase. Provide quality (x) instead of, or in addition to, T.'};
+    }
+    return fromPT(k.P, k.T);
+  }
+  // P & x  /  T & x
+  if (have(k.P) && have(k.x)) return fullFromSat(k.P, k.x);
+  if (have(k.T) && have(k.x)) { const p = psat_T(k.T); return fullFromSat(p, k.x); }
+
+  // P pinned + one of h,s,v,u
+  if (have(k.P)) {
+    for (const prop of ['h','s','v','u']) {
+      if (!have(k[prop])) continue;
+      const p = k.P;
+      if (p>PMIN && p<PCRIT) {
+        const sat = satAtP(p);
+        const fl = sat.liq[prop], fv = sat.vap[prop];
+        const lo = Math.min(fl,fv), hi = Math.max(fl,fv);
+        if (k[prop] >= lo && k[prop] <= hi) {
+          const x = (k[prop]-fl)/(fv-fl);
+          return fullFromSat(p, Math.min(1,Math.max(0,x)));
+        }
+        if (k[prop] < fl) {
+          const T = newton1D(T=>region1(p,T)[prop]-k[prop], sat.T-20, TMIN, sat.T);
+          return fromPT(p, T);
+        } else {
+          const T = newton1D(T=>region2(p,T)[prop]-k[prop], sat.T+20, sat.T, 1073.15);
+          return fromPT(p, T);
+        }
+      } else {
+        // supercritical-ish pressure or below triple point: search whole liquid+vapour range generically
+        const Tg = (prop==='h'||prop==='u') ? (k[prop]>1500?700:350) : (k[prop]>4?700:350);
+        const T = newton1D(T=> (T<623.15?region1(p,T):region2(p,T))[prop]-k[prop], Tg, TMIN, 1073.15);
+        return fromPT(p, T);
+      }
+    }
+  }
+  // T pinned + one of h,s,v,u
+  if (have(k.T)) {
+    for (const prop of ['h','s','v','u']) {
+      if (!have(k[prop])) continue;
+      const T = k.T;
+      if (T>TMIN && T<TCRIT) {
+        const p = psat_T(T);
+        const sat = satAtT(T);
+        const fl = sat.liq[prop], fv = sat.vap[prop];
+        const lo = Math.min(fl,fv), hi = Math.max(fl,fv);
+        if (k[prop] >= lo && k[prop] <= hi) {
+          const x = (k[prop]-fl)/(fv-fl);
+          return fullFromSat(p, Math.min(1,Math.max(0,x)));
+        }
+        if (k[prop] < fl) {
+          const P = newton1D(P=>region1(P,T)[prop]-k[prop], p*3, p, 100);
+          return fromPT(P, T);
+        } else {
+          const P = newton1D(P=>region2(P,T)[prop]-k[prop], p/3, PMIN, p);
+          return fromPT(P, T);
+        }
+      }
+    }
+  }
+  // h & s (Mollier point) — try region2 then region1, else two-phase search on P
+  if (have(k.h) && have(k.s)) {
+    function try2D(regionFn, T0, P0, Tb, Pb){
+      let T=T0, P=P0;
+      for (let i=0;i<80;i++){
+        const r = regionFn(P,T);
+        const eh = r.h-k.h, es = r.s-k.s;
+        if (Math.abs(eh)<1e-6 && Math.abs(es)<1e-7) return {P,T,ok:true};
+        const d=1e-4;
+        const rP = regionFn(P+d,T), rT = regionFn(P,T+d);
+        const dhP=(rP.h-r.h)/d, dhT=(rT.h-r.h)/d, dsP=(rP.s-r.s)/d, dsT=(rT.s-r.s)/d;
+        const det = dhP*dsT-dhT*dsP;
+        if (!isFinite(det) || Math.abs(det)<1e-12) break;
+        const dP = (-eh*dsT+es*dhT)/det, dT = (-es*dhP+eh*dsP)/det;
+        P = Math.min(Math.max(P+dP, Pb[0]), Pb[1]);
+        T = Math.min(Math.max(T+dT, Tb[0]), Tb[1]);
+      }
+      const r = regionFn(P,T);
+      return {P,T,ok: Math.abs(r.h-k.h)<1e-2 && Math.abs(r.s-k.s)<1e-3};
+    }
+    let res = try2D(region2, 500, 2, [273.16,1073.15], [PMIN,100]);
+    if (!res.ok) res = try2D(region1, 400, 5, [273.16,623.15], [PMIN,100]);
+    if (res.ok) return fromPT(res.P, res.T);
+    // two-phase fallback: solve for P where s(x=(h-hf(P))/(hg(P)-hf(P))) == k.s
+    const P = newton1D(P=>{
+      const sat = satAtP(P);
+      const x = (k.h - sat.liq.h)/(sat.vap.h - sat.liq.h);
+      return (sat.liq.s + x*(sat.vap.s-sat.liq.s)) - k.s;
+    }, 1, PMIN, PCRIT-0.01);
+    const sat = satAtP(P);
+    const x = (k.h - sat.liq.h)/(sat.vap.h - sat.liq.h);
+    if (x>=-0.02 && x<=1.02) return fullFromSat(P, Math.min(1,Math.max(0,x)));
+    return {error:'underdetermined', note:'Could not resolve state from h and s alone — try adding P or T.'};
+  }
+  // v & one of h,s,u ; u & one of h,s (rarer combos) — generic search over P at fixed prop via two-phase+1D bracket, trying a spread of pressures
+  const pairs = [['v','h'],['v','s'],['v','u'],['u','h'],['u','s'],['v','x'],['h','x'],['s','x'],['u','x']];
+  for (const [pa,pb] of pairs) {
+    if (have(k[pa]) && have(k[pb])) {
+      if (pb==='x') {
+        const P = newton1D(P=>{
+          const sat = satAtP(P);
+          const val = pa==='v'?sat: null;
+          const fl = sat.liq[pa], fv = sat.vap[pa];
+          return (fl + k.x*(fv-fl)) - k[pa];
+        }, 1, PMIN, PCRIT-0.01);
+        return fullFromSat(P, k.x);
+      }
+      // find P via bisection on saturation dome matching pa, then check pb consistency isn't enforced (best-effort single-shot using pa to fix two-phase P, else numeric on (P,T))
+      const P = newton1D(P=>{
+        const sat = satAtP(P);
+        const fl=sat.liq[pa], fv=sat.vap[pa];
+        if (k[pa]>=Math.min(fl,fv) && k[pa]<=Math.max(fl,fv)) {
+          const x=(k[pa]-fl)/(fv-fl);
+          const fl2=sat.liq[pb], fv2=sat.vap[pb];
+          return (fl2+x*(fv2-fl2)) - k[pb];
+        }
+        return (k[pa]>fv? region2(P, Tsat_p(P)+50)[pb] : region1(P, Tsat_p(P)-50)[pb]) - k[pb];
+      }, 1, PMIN, PCRIT-0.01);
+      const sat = satAtP(P);
+      const fl=sat.liq[pa], fv=sat.vap[pa];
+      if (k[pa]>=Math.min(fl,fv) && k[pa]<=Math.max(fl,fv)) {
+        const x=(k[pa]-fl)/(fv-fl);
+        return fullFromSat(P, Math.min(1,Math.max(0,x)));
+      }
+      return {error:'underdetermined', note:`Could not resolve state from ${pa} and ${pb} alone — try adding P or T.`};
+    }
+  }
+  return {error:'underdetermined', note:'Need two independent properties to fix this state.'};
+}
+
+TS.steam = { region1, region2, psat_T, Tsat_p, satAtT, satAtP, solveState: solveSteamState, RW, PCRIT, TCRIT, PMIN, TMIN };
+
+})();
+
+// =========================================================================
+// IDEAL GAS ENGINE — constant specific heats (cold-air-standard assumption)
+// =========================================================================
+(function(){
+const GASES = {
+  air: {name:'Air',              R:0.2870, cp:1.005,  cv:0.7180, k:1.400},
+  n2:  {name:'Nitrogen (N₂)',    R:0.2968, cp:1.039,  cv:0.7429, k:1.400},
+  o2:  {name:'Oxygen (O₂)',      R:0.2598, cp:0.918,  cv:0.658,  k:1.395},
+  co2: {name:'Carbon dioxide (CO₂)', R:0.1889, cp:0.846, cv:0.657, k:1.289},
+  h2:  {name:'Hydrogen (H₂)',    R:4.124,  cp:14.307, cv:10.183, k:1.405},
+  he:  {name:'Helium (He)',      R:2.0769, cp:5.1926, cv:3.1156, k:1.667},
+  ar:  {name:'Argon (Ar)',       R:0.2081, cp:0.5203, cv:0.3122, k:1.667},
+  ch4: {name:'Methane (CH₄)',    R:0.5182, cp:2.254,  cv:1.735,  k:1.299},
+  co:  {name:'Carbon monoxide (CO)', R:0.2968, cp:1.040, cv:0.744, k:1.400},
+};
+const TREF = 273.15, PREF = 100; // kPa — reference state for the arbitrary entropy datum
+
+function have(v){ return v!==undefined && v!==null && v!==''; }
+
+// known: {P kPa, T degC, v m3/kg, h,u kJ/kg, s kJ/(kg K)}
+function solveGasState(gasKey, known) {
+  const g = GASES[gasKey];
+  if (!g) return {error:'unknown-gas'};
+  const k = {};
+  if (have(known.P)) k.P = known.P;
+  if (have(known.T)) k.T = known.T+273.15;
+  if (have(known.v)) k.v = known.v;
+  if (have(known.h)) k.h = known.h;
+  if (have(known.u)) k.u = known.u;
+  if (have(known.s)) k.s = known.s;
+
+  // reduce everything to T (K) and P (kPa)
+  let T, P;
+  if (have(k.T)) T = k.T;
+  else if (have(k.h)) T = k.h/g.cp;
+  else if (have(k.u)) T = k.u/g.cv;
+
+  if (have(k.P)) P = k.P;
+  else if (have(k.v) && T!==undefined) P = g.R*T/k.v;
+
+  if (T===undefined && have(k.v) && have(k.P)) T = k.P*k.v/g.R;
+  if (T===undefined && have(k.s) && have(k.P)) T = TREF*Math.exp((k.s + g.R*Math.log(k.P/PREF))/g.cp);
+  if (T===undefined && have(k.s) && have(k.v)) {
+    // s = cp ln(T/Tref) - R ln(P/Pref), P = R T / v  => s = cp ln(T/Tref) - R ln(RT/(v Pref))
+    T = newtonGas(T=> g.cp*Math.log(T/TREF) - g.R*Math.log((g.R*T/k.v)/PREF) - k.s, 400, 50, 4000);
+  }
+  if (P===undefined && T!==undefined && have(k.v)) P = g.R*T/k.v;
+  if (P===undefined && T!==undefined && have(k.s)) P = PREF*Math.exp((g.cp*Math.log(T/TREF)-k.s)/g.R);
+
+  if (T===undefined || P===undefined || !isFinite(T) || !isFinite(P) || T<=0 || P<=0) {
+    return {error:'underdetermined', note:'Need two independent properties (from P, T, v, h, u, s) to fix this state.'};
+  }
+  const v = g.R*T/P;
+  const h = g.cp*T;
+  const u = g.cv*T;
+  const s = g.cp*Math.log(T/TREF) - g.R*Math.log(P/PREF);
+  return {P, T:T-273.15, v, h, u, s};
+}
+function newtonGas(f,x0,lo,hi){
+  let x=x0;
+  for(let i=0;i<60;i++){
+    const fx=f(x); if(!isFinite(fx)) break;
+    if (Math.abs(fx)<1e-8) return x;
+    const d=Math.max(Math.abs(x)*1e-6,1e-6);
+    const df=(f(x+d)-f(x-d))/(2*d);
+    if(!isFinite(df)||df===0) break;
+    let xn=x-fx/df;
+    if(xn<lo||xn>hi) xn=(x+(fx>0?lo:hi))/2;
+    x=xn;
+  }
+  return x;
+}
+
+TS.gas = { GASES, solveState: solveGasState };
+})();
+
+// =========================================================================
+// CYCLE ENGINE — constraint propagation across states + transitions,
+// works identically for steam and ideal-gas fluids.
+// =========================================================================
+(function(){
+function have(v){ return v!==undefined && v!==null && v!==''; }
+const PROPS_WATER = ['P','T','h','s','v','u','x'];
+const PROPS_GAS = ['P','T','h','s','v','u'];
+
+const COMPONENT_META = {
+  turbine:        {label:'Turbine',        role:'work-out', eff:true},
+  expansion:      {label:'Expansion (power stroke)', role:'work-out', eff:true},
+  compressor:     {label:'Compressor',     role:'work-in',  eff:true},
+  pump:           {label:'Pump',           role:'work-in',  eff:true},
+  compression:    {label:'Compression (piston)', role:'work-in', eff:true},
+  boiler:         {label:'Boiler / steam generator', role:'heat'},
+  condenser:      {label:'Condenser',      role:'heat'},
+  combustor:      {label:'Combustor / heat addition', role:'heat'},
+  'heat-exchanger':{label:'Heat exchanger / rejection', role:'heat'},
+  valve:          {label:'Throttle valve', role:'none'},
+  other:          {label:'Other / custom', role:'custom'},
+};
+
+function solveStateFor(fluid, known){
+  return fluid==='water' ? TS.steam.solveState(known) : TS.gas.solveState(fluid, known);
+}
+
+function solveCycle(cycle) {
+  const N = cycle.numStates;
+  const fluid = cycle.fluidType;
+  const props = fluid==='water' ? PROPS_WATER : PROPS_GAS;
+
+  const st = cycle.states.slice(0,N).map(s => ({...s}));
+  for (let i=0;i<N;i++) if(!st[i]) st[i]={};
+
+  function countKnown(s){ return props.filter(p=>have(s[p])).length; }
+
+  function tryResolve(i){
+    if (countKnown(st[i]) >= props.length) { st[i].__error=null; return false; } // already fully determined
+    const known = {};
+    props.forEach(p=>{ if (have(st[i][p])) known[p]=st[i][p]; });
+    if (countKnown(st[i]) < 2) { st[i].__error=null; return false; }
+    const res = solveStateFor(fluid, known);
+    if (res && !res.error) {
+      let changed=false;
+      props.forEach(p=>{ if (have(res[p]) && !have(st[i][p])) { st[i][p]=res[p]; changed=true; } });
+      st[i].__error = null;
+      return changed;
+    } else if (res && res.error) {
+      st[i].__error = res.note || res.error;
+    }
+    return false;
+  }
+
+  function applyTransition(i,j,t){
+    let changed=false;
+    function copyIfMissing(prop){
+      if (have(st[i][prop]) && !have(st[j][prop])) { st[j][prop]=st[i][prop]; changed=true; }
+      else if (have(st[j][prop]) && !have(st[i][prop])) { st[i][prop]=st[j][prop]; changed=true; }
+    }
+    if (have(t.vRatio) && have(st[i].v) && !have(st[j].v)) { st[j].v = st[i].v/Number(t.vRatio); changed=true; }
+    if (have(t.pRatio) && have(st[i].P) && !have(st[j].P)) { st[j].P = st[i].P*Number(t.pRatio); changed=true; }
+
+    switch(t.process){
+      case 'isobaric': copyIfMissing('P'); break;
+      case 'isochoric': copyIfMissing('v'); break;
+      case 'isothermal': copyIfMissing('T'); break;
+      case 'isenthalpic': copyIfMissing('h'); break;
+      case 'isentropic': {
+        const meta = COMPONENT_META[t.component] || {};
+        const eff = have(t.eff) ? Number(t.eff) : 1;
+        const isWork = meta.role==='work-in' || meta.role==='work-out';
+        if (!isWork || !have(t.eff) || eff===1) { copyIfMissing('s'); }
+        else if (have(st[i].s) && have(st[i].h) && !have(st[j].h)) {
+          const pinnedProp = ['P','T','v'].find(p=>have(st[j][p]));
+          if (pinnedProp) {
+            const idealKnown = {s: st[i].s}; idealKnown[pinnedProp]=st[j][pinnedProp];
+            const ideal = solveStateFor(fluid, idealKnown);
+            if (ideal && !ideal.error) {
+              const hActual = meta.role==='work-out'
+                ? st[i].h - eff*(st[i].h-ideal.h)
+                : st[i].h + (ideal.h-st[i].h)/eff;
+              st[j].h = hActual; changed=true;
+            }
+          }
+        }
+        break;
+      }
+      case 'polytropic': {
+        if (fluid!=='water' && have(t.n)) {
+          const n = Number(t.n);
+          if (have(st[i].P)&&have(st[i].v)&&have(st[j].P)&&!have(st[j].v)) { st[j].v = st[i].v*Math.pow(st[i].P/st[j].P, 1/n); changed=true; }
+          else if (have(st[i].P)&&have(st[i].v)&&have(st[j].v)&&!have(st[j].P)) { st[j].P = st[i].P*Math.pow(st[i].v/st[j].v, n); changed=true; }
+          else if (have(st[i].T)&&have(st[i].v)&&have(st[j].v)&&!have(st[j].T)) { st[j].T = st[i].T*Math.pow(st[i].v/st[j].v, n-1); changed=true; }
+          else if (have(st[i].T)&&have(st[i].P)&&have(st[j].P)&&!have(st[j].T)) { st[j].T = st[i].T*Math.pow(st[j].P/st[i].P, (n-1)/n); changed=true; }
+        }
+        break;
+      }
+      default: break;
+    }
+    return changed;
+  }
+
+  let progress = true, iter=0;
+  const maxIter = N*8+20;
+  while (progress && iter<maxIter) {
+    progress = false; iter++;
+    for (let i=0;i<N;i++){ if (tryResolve(i)) progress = true; }
+    for (let i=0;i<N;i++){ const j=(i+1)%N; if (applyTransition(i,j,cycle.transitions[i])) progress = true; }
+  }
+  for (let i=0;i<N;i++) tryResolve(i);
+
+  const trans = cycle.transitions.slice(0,N).map((t,i)=>{
+    const j=(i+1)%N;
+    return computeTransitionEnergy(st[i], st[j], t, fluid);
+  });
+
+  const summary = computeSummary(st, trans, cycle);
+  return { states: st, transitions: trans, summary };
+}
+
+// Steady-flow (SFEE, Q-W=Δh) vs closed piston-cylinder (non-flow, Q-W=Δu with
+// boundary work W=∫P dv) give DIFFERENT energy balances for the same process —
+// Otto/Diesel are closed-cycle, Rankine/Brayton are steady-flow. Mixing the two
+// bases (e.g. using Δh for a closed-system constant-volume leg) silently gives
+// wrong Q/W even though the state properties themselves stay correct.
+function computeTransitionEnergy(si, sj, t, fluidType){
+  const meta = COMPONENT_META[t.component] || {role:'custom'};
+  const system = t.system==='closed' ? 'closed' : 'flow';
+  let Q = have(t.Q) ? Number(t.Q) : undefined;
+  let W = have(t.W) ? Number(t.W) : undefined;
+  const hasH = have(si.h) && have(sj.h);
+  const hasU = have(si.u) && have(sj.u);
+  const dh = hasH ? sj.h-si.h : undefined;
+  const du = hasU ? sj.u-si.u : undefined;
+
+  if (system==='flow') {
+    if (meta.role==='none') { if(Q===undefined) Q=0; if(W===undefined) W=0; }
+    else if (hasH) {
+      if (meta.role==='work-in' || meta.role==='work-out') {
+        if (Q===undefined) Q = 0;
+        if (W===undefined) W = Q - dh;
+      } else {
+        if (W===undefined) W = 0;
+        if (Q===undefined) Q = dh + W;
+      }
+    }
+  } else if (hasU) { // closed / non-flow system
+    if (W===undefined) {
+      if (t.process==='isochoric') W = 0;
+      else if (t.process==='isobaric' && have(si.P) && have(si.v) && have(sj.v)) W = si.P*(sj.v-si.v);
+      else if (t.process==='isentropic') W = -du;
+      else if (t.process==='isothermal' && fluidType!=='water' && have(si.T) && have(si.v) && have(sj.v)) {
+        W = TS.gas.GASES[fluidType].R*(si.T+273.15)*Math.log(sj.v/si.v);
+      }
+    }
+    if (W!==undefined && Q===undefined) Q = du + W;
+    else if (W===undefined && Q!==undefined) W = Q - du;
+    else if (W===undefined && Q===undefined) { W = 0; Q = du; }
+  }
+  return {Q, W, dh, du, component:t.component, role:meta.role, system};
+}
+
+function computeSummary(st, trans, cycle){
+  let wNet=0, qIn=0, qOut=0, wOut=0, wIn=0;
+  let anyW=false, anyQ=false;
+  trans.forEach(t=>{
+    if (have(t.W)) { anyW=true; wNet+=t.W; if(t.role==='work-out') wOut+=t.W; if(t.role==='work-in') wIn+=t.W; }
+    if (have(t.Q)) { anyQ=true; if (t.Q>0) qIn+=t.Q; else qOut+=-t.Q; }
+  });
+  let allResolved = true;
+  const props = cycle.fluidType==='water'?PROPS_WATER:PROPS_GAS;
+  st.forEach(s=>{ if (props.filter(p=>have(s[p])).length<2) allResolved=false; });
+  const eff = qIn>0 ? wNet/qIn : undefined;
+  const bwr = wOut>0 ? (-wIn)/wOut : undefined;
+  const mdot = have(cycle.mdot) ? Number(cycle.mdot) : undefined;
+  let moistureWarning = null;
+  if (cycle.fluidType==='water') {
+    st.forEach((s,i)=>{
+      const t = cycle.transitions[(i-1+st.length)%st.length];
+      if (t && t.component==='turbine' && have(s.x) && s.x<0.88) moistureWarning = `State ${i+1}: turbine-exit quality x=${s.x.toFixed(3)} is below the ~0.88 erosion guideline — excessive moisture.`;
+    });
+  }
+  return { wNet, qIn, qOut, wOut, wIn, eff, bwr, allResolved, anyW, anyQ, mdot,
+    powerKW: mdot!==undefined? wNet*mdot: undefined, qInKW: mdot!==undefined? qIn*mdot: undefined,
+    moistureWarning };
+}
+
+TS.cycle = { solve: solveCycle, COMPONENT_META };
+})();
+
+// =========================================================================
+// CYCLE PRESETS
+// =========================================================================
+(function(){
+function T(process, component, extra){ return Object.assign({process, component}, extra||{}); }
+
+const PRESETS = {
+  rankine: {
+    label: 'Rankine cycle (steam)', fluidType: 'water', numStates: 4,
+    note: 'Basic Rankine cycle: pump → boiler → turbine → condenser.',
+    states: [
+      {P:10, x:0},                 // 1: condenser exit / pump inlet, sat. liquid
+      {P:3000},                    // 2: pump exit / boiler inlet
+      {T:350},                     // 3: boiler exit / turbine inlet (P set by isobaric boiler)
+      {P:10},                      // 4: turbine exit / condenser inlet
+    ],
+    transitions: [
+      T('isentropic','pump',{eff:1}),
+      T('isobaric','boiler'),
+      T('isentropic','turbine',{eff:0.85}),
+      T('isobaric','condenser'),
+    ],
+    mdot: 10,
+  },
+  carnotVapor: {
+    label: 'Carnot cycle (vapor, theoretical)', fluidType:'water', numStates:4,
+    note: 'Idealized Carnot cycle using steam. Not practically buildable (compressing a liquid/vapor mixture is not feasible) — shown for comparison against the Carnot efficiency limit 1−T_L/T_H.',
+    states: [
+      {P:1500, x:0},
+      {P:1500, x:0.9},
+      {P:10},
+      {P:10},
+    ],
+    transitions: [
+      T('isothermal','boiler'),
+      T('isentropic','turbine',{eff:1}),
+      T('isothermal','condenser'),
+      T('isentropic','pump',{eff:1}),
+    ],
+    mdot: 1,
+  },
+  brayton: {
+    label: 'Brayton cycle (gas turbine, air)', fluidType:'air', numStates:4,
+    note: 'Air-standard Brayton cycle: compressor → combustor → turbine → heat rejection (models exhaust for cycle-closure).',
+    states: [
+      {P:100, T:25},
+      {P:900},
+      {T:1200},
+      {P:100},
+    ],
+    transitions: [
+      T('isentropic','compressor',{eff:0.85}),
+      T('isobaric','combustor'),
+      T('isentropic','turbine',{eff:0.88}),
+      T('isobaric','heat-exchanger'),
+    ],
+    mdot: 20,
+  },
+  otto: {
+    label: 'Otto cycle (spark-ignition, air-standard)', fluidType:'air', numStates:4,
+    note: 'Ideal air-standard Otto cycle: isentropic compression → constant-volume heat addition → isentropic expansion → constant-volume heat rejection.',
+    states: [
+      {P:100, T:25},
+      {},
+      {T:1600},
+      {},
+    ],
+    transitions: [
+      T('isentropic','compression',{eff:1, vRatio:8, system:'closed'}),
+      T('isochoric','combustor',{system:'closed'}),
+      T('isentropic','expansion',{eff:1, system:'closed'}),
+      T('isochoric','heat-exchanger',{system:'closed'}),
+    ],
+    mdot: 0.1,
+  },
+  diesel: {
+    label: 'Diesel cycle (compression-ignition, air-standard)', fluidType:'air', numStates:4,
+    note: 'Ideal air-standard Diesel cycle: isentropic compression → constant-pressure heat addition → isentropic expansion → constant-volume heat rejection.',
+    states: [
+      {P:100, T:25},
+      {},
+      {T:1900},
+      {},
+    ],
+    transitions: [
+      T('isentropic','compression',{eff:1, vRatio:18, system:'closed'}),
+      T('isobaric','combustor',{system:'closed'}),
+      T('isentropic','expansion',{eff:1, system:'closed'}),
+      T('isochoric','heat-exchanger',{system:'closed'}),
+    ],
+    mdot: 0.1,
+  },
+  carnotGas: {
+    label: 'Carnot cycle (ideal gas, theoretical)', fluidType:'air', numStates:4,
+    note: 'Idealized Carnot cycle using an ideal gas: isothermal expansion → isentropic expansion → isothermal compression → isentropic compression.',
+    states: [
+      {P:1000, T:900},
+      {P:300},
+      {T:400},
+      {},
+    ],
+    transitions: [
+      T('isothermal','expansion',{system:'closed'}),
+      T('isentropic','expansion',{eff:1, system:'closed'}),
+      T('isothermal','compression',{system:'closed'}),
+      T('isentropic','compression',{eff:1, system:'closed'}),
+    ],
+    mdot: 0.1,
+  },
+  custom: {
+    label: 'Custom cycle', fluidType:'water', numStates:4,
+    note: 'Build your own cycle: pick a fluid, number of states, and the process/component for each leg.',
+    states: [{},{},{},{}],
+    transitions: [T('isobaric','boiler'),T('isobaric','boiler'),T('isobaric','boiler'),T('isobaric','boiler')],
+    mdot: undefined,
+  },
+};
+
+TS.presets = PRESETS;
+})();
+
+window.TS = TS;
+</script>
+
+<script>
+'use strict';
+/* =========================================================================
+   UI LAYER — reactive editor for a cycle's states + transitions, live
+   output table, summary stats, and SVG T-s / P-v / h-s diagrams.
+   Input DOM is rebuilt only on structural changes (preset/fluid/#states);
+   individual keystrokes just mutate `app` and re-render the OUTPUT side,
+   so focus/cursor position in the field being typed in is never lost.
+   ========================================================================= */
+const UI_PROPS = { water:['P','T','h','s','v','u','x'], gas:['P','T','h','s','v','u'] };
+const PROP_META = {
+  P:{label:'P', unit:'kPa', title:'Pressure'},
+  T:{label:'T', unit:'°C', title:'Temperature'},
+  h:{label:'h', unit:'kJ/kg', title:'Specific enthalpy'},
+  s:{label:'s', unit:'kJ/kg·K', title:'Specific entropy'},
+  v:{label:'v', unit:'m³/kg', title:'Specific volume'},
+  u:{label:'u', unit:'kJ/kg', title:'Specific internal energy'},
+  x:{label:'x', unit:'0–1', title:'Quality (dryness fraction)'},
+};
+const PROCESS_OPTS = [
+  ['isentropic','Isentropic (reversible adiabatic)'],
+  ['isobaric','Isobaric (constant P)'],
+  ['isochoric','Isochoric (constant v)'],
+  ['isothermal','Isothermal (constant T)'],
+  ['isenthalpic','Isenthalpic (throttling)'],
+  ['polytropic','Polytropic (Pvⁿ = const)'],
+  ['none','None / user-defined'],
+];
+const COMPONENT_OPTS = [
+  ['turbine','Turbine'],['expansion','Expansion (piston)'],
+  ['compressor','Compressor'],['pump','Pump'],['compression','Compression (piston)'],
+  ['boiler','Boiler'],['condenser','Condenser'],['combustor','Combustor'],
+  ['heat-exchanger','Heat exchanger'],['valve','Valve (throttle)'],['other','Other'],
+];
+
+let app = null;
+let lastResult = null;
+
+function have(v){ return v!==undefined && v!==null && v!==''; }
+function fmtNum(v, digits){
+  if (!have(v) || !isFinite(v)) return '—';
+  digits = digits===undefined?3:digits;
+  const av = Math.abs(v);
+  if (av!==0 && (av<0.001||av>=100000)) return v.toExponential(3);
+  return v.toLocaleString(undefined,{maximumFractionDigits:digits, minimumFractionDigits:0});
+}
+
+function loadPreset(key){
+  const p = TS.presets[key];
+  app = {
+    presetKey:key, fluidType:p.fluidType, numStates:p.numStates,
+    states: p.states.map(s=>({...s})), transitions: p.transitions.map(t=>({...t})),
+    mdot:p.mdot, note:p.note, label:p.label,
+  };
+  ensureArrays();
+  renderControlBar();
+  renderPipeline();
+  recompute();
+}
+function ensureArrays(){
+  while (app.states.length < app.numStates) app.states.push({});
+  while (app.transitions.length < app.numStates) app.transitions.push({process:'isobaric', component:'other'});
+  app.states.length = app.numStates;
+  app.transitions.length = app.numStates;
+}
+
+/* ---------------------------- control bar ---------------------------- */
+function renderControlBar(){
+  const bar = document.getElementById('controlBar');
+  bar.innerHTML = '';
+  bar.appendChild(fieldSelect('Cycle', Object.keys(TS.presets).map(k=>[k,TS.presets[k].label]), app.presetKey, v=>loadPreset(v)));
+  const fluidOpts = [['water','Water / Steam'], ...Object.keys(TS.gas.GASES).map(k=>[k, TS.gas.GASES[k].name+' (ideal gas)'])];
+  bar.appendChild(fieldSelect('Fluid', fluidOpts, app.fluidType, v=>{ app.fluidType=v; app.presetKey='custom'; app.note=null; renderControlBar(); renderPipeline(); recompute(); }));
+  bar.appendChild(fieldNumber('States', app.numStates, 3, 8, 1, v=>{ app.numStates=Math.max(3,Math.min(8,Math.round(v||4))); app.presetKey='custom'; ensureArrays(); renderControlBar(); renderPipeline(); recompute(); }));
+  bar.appendChild(fieldNumber('ṁ (kg/s)', app.mdot, 0, 1000000, 0.01, v=>{ app.mdot=v; recompute(); }));
+  if (app.note){ const note=document.createElement('div'); note.className='preset-note'; note.innerHTML='<b>Note</b> — '+app.note; bar.appendChild(note); }
+}
+function fieldSelect(label, opts, value, onChange){
+  const wrap=document.createElement('div'); wrap.className='field';
+  const l=document.createElement('label'); l.textContent=label; wrap.appendChild(l);
+  const sel=document.createElement('select');
+  opts.forEach(([v,t])=>{ const o=document.createElement('option'); o.value=v; o.textContent=t; if(v===value)o.selected=true; sel.appendChild(o); });
+  sel.addEventListener('change', ()=>onChange(sel.value));
+  wrap.appendChild(sel);
+  return wrap;
+}
+function fieldNumber(label, value, min, max, step, onChange){
+  const wrap=document.createElement('div'); wrap.className='field';
+  const l=document.createElement('label'); l.textContent=label; wrap.appendChild(l);
+  const inp=document.createElement('input'); inp.type='number'; inp.min=min; inp.max=max; inp.step=step;
+  if (have(value)) inp.value=value;
+  inp.addEventListener('input', ()=>onChange(inp.value===''?undefined:Number(inp.value)));
+  wrap.appendChild(inp);
+  return wrap;
+}
+
+/* ---------------------------- pipeline (inputs) ---------------------------- */
+function renderPipeline(){
+  const wrap = document.getElementById('pipeline');
+  wrap.innerHTML = '';
+  const props = app.fluidType==='water'?UI_PROPS.water:UI_PROPS.gas;
+  for (let i=0;i<app.numStates;i++){
+    wrap.appendChild(buildStateCard(i, props));
+    wrap.appendChild(buildTransitionRow(i));
+  }
+  const loop=document.createElement('div'); loop.className='loop-note';
+  loop.textContent = `↩ the last transition connects State ${app.numStates} back to State 1, closing the cycle.`;
+  wrap.appendChild(loop);
+}
+function buildStateCard(i, props){
+  const card=document.createElement('div'); card.className='state-card';
+  const head=document.createElement('div'); head.className='state-card-head';
+  head.innerHTML = `<span><span class="state-badge">${i+1}</span> <span class="state-title" style="margin-left:6px;">State ${i+1}</span></span>`;
+  card.appendChild(head);
+  const grid=document.createElement('div'); grid.className='state-grid';
+  props.forEach(p=>{
+    const meta=PROP_META[p];
+    const f=document.createElement('div'); f.className='pfield'+(have(app.states[i][p])?' has-value':'');
+    const lab=document.createElement('label'); lab.textContent=`${meta.label}${meta.unit?' ('+meta.unit+')':''}`; lab.title=meta.title;
+    const inp=document.createElement('input'); inp.type='number'; inp.step='any'; inp.placeholder='—';
+    if (p==='x'){ inp.min=0; inp.max=1; inp.step=0.001; }
+    if (have(app.states[i][p])) inp.value=app.states[i][p];
+    inp.addEventListener('input', ()=>{
+      const val = inp.value===''?undefined:Number(inp.value);
+      if (val===undefined) delete app.states[i][p]; else app.states[i][p]=val;
+      f.classList.toggle('has-value', val!==undefined);
+      recompute();
+    });
+    f.appendChild(lab); f.appendChild(inp);
+    grid.appendChild(f);
+  });
+  card.appendChild(grid);
+  const err=document.createElement('div'); err.className='state-err'; err.style.display='none'; err.id='state-err-'+i;
+  card.appendChild(err);
+  return card;
+}
+function buildTransitionRow(i){
+  const t = app.transitions[i];
+  const j=(i+1)%app.numStates;
+  const row=document.createElement('div'); row.className='transition-row';
+  const line=document.createElement('div'); line.className='transition-line';
+  const body=document.createElement('div'); body.className='transition-body';
+  body.appendChild(labelSpan((i+1)+' → '+(j+1)));
+  body.appendChild(selectEl(PROCESS_OPTS, t.process, v=>{ t.process=v; renderPipeline(); recompute(); }));
+  body.appendChild(selectEl(COMPONENT_OPTS, t.component, v=>{ t.component=v; renderPipeline(); recompute(); }));
+  const meta = TS.cycle.COMPONENT_META[t.component]||{};
+  if (meta.eff) body.appendChild(miniNum('η', t.eff, 0.01, 1, 0.01, v=>{ t.eff=v; recompute(); }));
+  if (t.process==='polytropic') body.appendChild(miniNum('n', t.n, -20, 20, 0.01, v=>{ t.n=v; recompute(); }));
+  if (t.process==='isentropic' || t.process==='isochoric') body.appendChild(miniNum('v-ratio', t.vRatio, 0.001, 200, 0.01, v=>{ t.vRatio=v; recompute(); }));
+  if (t.process==='isobaric') body.appendChild(miniNum('p-ratio', t.pRatio, 0.001, 200, 0.01, v=>{ t.pRatio=v; recompute(); }));
+  if (app.fluidType!=='water') body.appendChild(selectEl([['flow','Steady-flow'],['closed','Closed / piston']], t.system||'flow', v=>{ t.system=v; recompute(); }));
+  const badge=document.createElement('span'); badge.className='transition-badge'; badge.id='trans-badge-'+i; badge.textContent='—';
+  body.appendChild(badge);
+  row.appendChild(line); row.appendChild(body);
+  return row;
+}
+function selectEl(opts, value, onChange){
+  const sel=document.createElement('select');
+  opts.forEach(([v,t])=>{ const o=document.createElement('option'); o.value=v; o.textContent=t; if(v===value)o.selected=true; sel.appendChild(o); });
+  sel.addEventListener('change', ()=>onChange(sel.value));
+  return sel;
+}
+function miniNum(label, value, min, max, step, onChange){
+  const wrap=document.createElement('div'); wrap.className='transition-mini';
+  const l=document.createElement('label'); l.textContent=label; wrap.appendChild(l);
+  const inp=document.createElement('input'); inp.type='number'; inp.min=min; inp.max=max; inp.step=step;
+  if (have(value)) inp.value=value;
+  inp.addEventListener('input', ()=>onChange(inp.value===''?undefined:Number(inp.value)));
+  wrap.appendChild(inp);
+  return wrap;
+}
+function labelSpan(text){ const s=document.createElement('span'); s.style.fontSize='11px'; s.style.color='var(--ink-faint)'; s.style.fontWeight='700'; s.textContent=text; return s; }
+
+/* ---------------------------- recompute + outputs ---------------------------- */
+function recompute(){
+  ensureArrays();
+  lastResult = TS.cycle.solve(app);
+  renderOutputs();
+}
+function renderOutputs(){
+  const props = app.fluidType==='water'?UI_PROPS.water:UI_PROPS.gas;
+  const res = lastResult, sum = res.summary;
+
+  const banners=document.getElementById('banners'); banners.innerHTML='';
+  if (!sum.allResolved) banners.appendChild(bannerEl('warn', 'Cycle not fully solved yet — each state needs two independent properties (entered directly, or derived through the process relations) before it can be plotted.'));
+  if (sum.moistureWarning) banners.appendChild(bannerEl('bad', sum.moistureWarning));
+
+  res.states.forEach((s,i)=>{
+    const errEl=document.getElementById('state-err-'+i);
+    if (errEl){ if (s.__error){ errEl.style.display='block'; errEl.textContent=s.__error; } else errEl.style.display='none'; }
+  });
+  res.transitions.forEach((t,i)=>{
+    const b=document.getElementById('trans-badge-'+i);
+    if (!b) return;
+    const parts=[];
+    if (have(t.Q)) parts.push('q='+fmtNum(t.Q,1));
+    if (have(t.W)) parts.push('w='+fmtNum(t.W,1));
+    b.textContent = parts.length?parts.join('  '):'—';
+  });
+
+  const sg=document.getElementById('summaryGrid'); sg.innerHTML='';
+  sg.appendChild(statEl('Net work', sum.anyW?fmtNum(sum.wNet,2)+' kJ/kg':'—', 'accent'));
+  sg.appendChild(statEl('Heat in', sum.anyQ?fmtNum(sum.qIn,2)+' kJ/kg':'—', 'maroon'));
+  sg.appendChild(statEl('Heat out', sum.anyQ?fmtNum(sum.qOut,2)+' kJ/kg':'—', 'navy'));
+  sg.appendChild(statEl('Thermal efficiency', sum.eff!==undefined?(sum.eff*100).toFixed(2)+'%':'—', 'accent'));
+  sg.appendChild(statEl('Back work ratio', sum.bwr!==undefined?sum.bwr.toFixed(3):'—'));
+  if (have(sum.mdot)) sg.appendChild(statEl('Net power', have(sum.powerKW)?fmtNum(sum.powerKW,1)+' kW':'—', 'accent'));
+
+  let html = '<table class="out-table"><thead><tr><th>State</th>';
+  props.forEach(p=>{ html += `<th>${PROP_META[p].label}<br><span style="font-weight:400;text-transform:none;">${PROP_META[p].unit}</span></th>`; });
+  html += '</tr></thead><tbody>';
+  res.states.forEach((s,i)=>{
+    html += `<tr><td>${i+1}</td>`;
+    props.forEach(p=>{
+      const isSet = have(app.states[i][p]);
+      html += `<td class="${isSet?'user-set':''}">${have(s[p])?fmtNum(s[p], p==='x'?3:2):'—'}</td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  document.getElementById('outTableWrap').innerHTML = html;
+
+  renderPlots(res);
+}
+function bannerEl(kind, text){ const d=document.createElement('div'); d.className='banner '+kind; d.textContent=text; return d; }
+function statEl(label, value, cls){ const d=document.createElement('div'); d.className='stat'+(cls?' '+cls:''); d.innerHTML=`<div class="stat-label">${label}</div><div class="stat-value">${value}</div>`; return d; }
+
+/* ---------------------------- plotting (custom SVG) ---------------------------- */
+function renderPlots(res){
+  const wrap=document.getElementById('plots'); wrap.innerHTML='';
+  const isWater = app.fluidType==='water';
+  wrap.appendChild(plotCard('Temperature – Entropy (T–s)', buildTsSvg(res, isWater)));
+  wrap.appendChild(plotCard('Pressure – Specific volume (P–v)', buildPvSvg(res, isWater)));
+  if (isWater) wrap.appendChild(plotCard('Enthalpy – Entropy (h–s, Mollier)', buildHsSvg(res)));
+}
+function plotCard(title, svg){
+  const d=document.createElement('div'); d.className='plot-card';
+  const h=document.createElement('h3'); h.textContent=title; d.appendChild(h);
+  d.insertAdjacentHTML('beforeend', svg);
+  return d;
+}
+function pointsFrom(res, xProp, yProp){
+  return res.states.map((s,i)=>({x:s[xProp], y:s[yProp], label:String(i+1)})).filter(p=>have(p.x)&&have(p.y));
+}
+function buildTsSvg(res, isWater){
+  const pts = pointsFrom(res,'s','T');
+  if (!pts.length) return emptyPlotMsg();
+  return buildXYPlot(pts, isWater?buildSteamDome('s','T'):null, {xLabel:'s (kJ/kg·K)', yLabel:'T (°C)'});
+}
+function buildPvSvg(res, isWater){
+  const pts = pointsFrom(res,'v','P');
+  if (!pts.length) return emptyPlotMsg();
+  return buildXYPlot(pts, isWater?buildSteamDome('v','P'):null, {xLabel:'v (m³/kg)', yLabel:'P (kPa)', xLog:true, yLog:true});
+}
+function buildHsSvg(res){
+  const pts = pointsFrom(res,'s','h');
+  if (!pts.length) return emptyPlotMsg();
+  return buildXYPlot(pts, buildSteamDome('s','h'), {xLabel:'s (kJ/kg·K)', yLabel:'h (kJ/kg)'});
+}
+function emptyPlotMsg(){ return '<div style="font-size:12px;color:var(--ink-faint);padding:26px 10px;text-align:center;">Not enough resolved states yet — fill in more properties to see this diagram.</div>'; }
+
+let domeCache = {};
+function buildSteamDome(xProp, yProp){
+  const key = xProp+'_'+yProp;
+  if (domeCache[key]) return domeCache[key];
+  function pickVal(prop, T, p, side){ if (prop==='T') return T-273.15; if (prop==='P') return p*1000; return side[prop]; }
+  const liq=[], vap=[];
+  const Tmin=273.16+0.5, Tmax=647.096-0.05, N=60;
+  for (let k=0;k<=N;k++){
+    const T = Tmin + (Tmax-Tmin)*k/N;
+    const sat = TS.steam.satAtT(T);
+    liq.push({x:pickVal(xProp,T,sat.p,sat.liq), y:pickVal(yProp,T,sat.p,sat.liq)});
+    vap.push({x:pickVal(xProp,T,sat.p,sat.vap), y:pickVal(yProp,T,sat.p,sat.vap)});
+  }
+  domeCache[key]=[liq,vap];
+  return domeCache[key];
+}
+function svgScale(domain, range, log){
+  const [d0,d1]=domain, [r0,r1]=range;
+  if (log){
+    const ld0=Math.log10(Math.max(d0,1e-12)), ld1=Math.log10(Math.max(d1,1e-12));
+    return v=> r0+(Math.log10(Math.max(v,1e-12))-ld0)/(ld1-ld0)*(r1-r0);
+  }
+  return v=> r0+(v-d0)/(d1-d0)*(r1-r0);
+}
+function niceDomain(values, padFrac){
+  let lo=Math.min(...values), hi=Math.max(...values);
+  if (lo===hi){ lo-=Math.abs(lo||1)*0.1; hi+=Math.abs(hi||1)*0.1; }
+  const pad=(hi-lo)*(padFrac===undefined?0.15:padFrac);
+  return [lo-pad, hi+pad];
+}
+function fmtAxisNum(v){
+  if (Math.abs(v)>=1000 || (Math.abs(v)<0.01 && v!==0)) return v.toExponential(1);
+  return Number(v.toPrecision(3)).toString();
+}
+function logTicks(domain){
+  const lo=Math.floor(Math.log10(domain[0])), hi=Math.ceil(Math.log10(domain[1]));
+  const arr=[]; for(let e=lo;e<=hi;e++) arr.push(Math.pow(10,e));
+  return arr.filter(v=>v>=domain[0]*0.999 && v<=domain[1]*1.001);
+}
+function linTicks(domain, n){ const arr=[]; for(let i=0;i<=n;i++) arr.push(domain[0]+(domain[1]-domain[0])*i/n); return arr; }
+
+function buildXYPlot(cyclePts, domeSeries, opts){
+  const W=440, H=300, M={l:54,r:14,t:12,b:36};
+  const plotW=W-M.l-M.r, plotH=H-M.t-M.b;
+  const allX = cyclePts.map(p=>p.x).concat(domeSeries?domeSeries.flatMap(s=>s.map(p=>p.x)):[]);
+  const allY = cyclePts.map(p=>p.y).concat(domeSeries?domeSeries.flatMap(s=>s.map(p=>p.y)):[]);
+  const finiteX = allX.filter(v=>isFinite(v)), finiteY = allY.filter(v=>isFinite(v));
+  const canLogX = opts.xLog && Math.min(...finiteX)>0 && Math.max(...finiteX)/Math.max(Math.min(...finiteX),1e-9) > 8;
+  const canLogY = opts.yLog && Math.min(...finiteY)>0 && Math.max(...finiteY)/Math.max(Math.min(...finiteY),1e-9) > 8;
+  const xDomain = canLogX? [Math.min(...finiteX)*0.6, Math.max(...finiteX)*1.6] : niceDomain(finiteX);
+  const yDomain = canLogY? [Math.min(...finiteY)*0.6, Math.max(...finiteY)*1.6] : niceDomain(finiteY);
+  const sx = svgScale(xDomain,[0,plotW],canLogX);
+  const sy = svgScale(yDomain,[plotH,0],canLogY);
+
+  let s = `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`;
+  s += `<g transform="translate(${M.l},${M.t})">`;
+  const xt = canLogX? logTicks(xDomain) : linTicks(xDomain,4);
+  const yt = canLogY? logTicks(yDomain) : linTicks(yDomain,4);
+  xt.forEach(v=>{ const X=sx(v);
+    s+=`<line x1="${X.toFixed(1)}" y1="0" x2="${X.toFixed(1)}" y2="${plotH}" stroke="var(--line)" stroke-width="1"/>`;
+    s+=`<text x="${X.toFixed(1)}" y="${plotH+15}" font-size="9" fill="var(--ink-faint)" text-anchor="middle">${fmtAxisNum(v)}</text>`; });
+  yt.forEach(v=>{ const Y=sy(v);
+    s+=`<line x1="0" y1="${Y.toFixed(1)}" x2="${plotW}" y2="${Y.toFixed(1)}" stroke="var(--line)" stroke-width="1"/>`;
+    s+=`<text x="-6" y="${(Y+3).toFixed(1)}" font-size="9" fill="var(--ink-faint)" text-anchor="end">${fmtAxisNum(v)}</text>`; });
+  s+=`<rect x="0" y="0" width="${plotW}" height="${plotH}" fill="none" stroke="var(--line-strong)"/>`;
+
+  if (domeSeries){
+    domeSeries.forEach(series=>{
+      const pts = series.filter(p=>isFinite(p.x)&&isFinite(p.y));
+      if (pts.length<2) return;
+      const d = pts.map((p,idx)=>(idx===0?'M':'L')+sx(p.x).toFixed(1)+','+sy(p.y).toFixed(1)).join(' ');
+      s+=`<path d="${d}" fill="none" stroke="var(--ink-faint)" stroke-width="1.25" stroke-dasharray="3,2"/>`;
+    });
+  }
+  if (cyclePts.length>1){
+    const d = cyclePts.map((p,idx)=>(idx===0?'M':'L')+sx(p.x).toFixed(1)+','+sy(p.y).toFixed(1)).join(' ')+' Z';
+    s+=`<path d="${d}" fill="var(--navy)" fill-opacity="0.07" stroke="var(--maroon)" stroke-width="2"/>`;
+  }
+  cyclePts.forEach(p=>{
+    const X=sx(p.x), Y=sy(p.y);
+    s+=`<circle cx="${X.toFixed(1)}" cy="${Y.toFixed(1)}" r="4.5" fill="var(--bg-elev)" stroke="var(--navy)" stroke-width="2"/>`;
+    s+=`<text x="${(X+7).toFixed(1)}" y="${(Y-6).toFixed(1)}" font-size="10" font-weight="700" fill="var(--ink)">${p.label}</text>`;
+  });
+  s += `<text x="${plotW/2}" y="${plotH+31}" font-size="10" fill="var(--ink-dim)" text-anchor="middle">${opts.xLabel}</text>`;
+  s += `<text x="${-plotH/2}" y="-40" font-size="10" fill="var(--ink-dim)" text-anchor="middle" transform="rotate(-90)">${opts.yLabel}</text>`;
+  s += '</g></svg>';
+  return s;
+}
+
+/* ---------------------------- theme + init ---------------------------- */
+function initTheme(){
+  let saved=null;
+  try { saved = localStorage.getItem('thermosolver-theme'); } catch(e){}
+  if (saved) document.documentElement.setAttribute('data-theme', saved);
+  document.getElementById('themeToggle').addEventListener('click', ()=>{
+    const sysDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const cur = document.documentElement.getAttribute('data-theme') || (sysDark?'dark':'light');
+    const next = cur==='dark' ? 'light':'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    try { localStorage.setItem('thermosolver-theme', next); } catch(e){}
+  });
+}
+
+initTheme();
+loadPreset('rankine');
+</script>
+</body>
+</html>
