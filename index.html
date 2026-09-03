@@ -1648,17 +1648,17 @@ async function callNetlifyAI(prompt, imageBlob){
       body: JSON.stringify({prompt, imageBase64, imageMediaType}),
     });
   } catch(e) {
-    throw {code:'upstream_error', message:'Network error reaching the AI backend.'};
+    throw {code:'upstream_error', message:'Network error reaching the AI backend.', fromNetlify:true};
   }
   let body = null;
   try { body = await resp.json(); } catch(e) {}
   if (!resp.ok) {
     const msg = (body && body.error) || '';
-    if (resp.status===404) throw {code:'not_declared', message:"AI import endpoint not found — this deployment may not have the backend set up yet."};
-    if (resp.status===503) throw {code:'sampling_disabled', message: msg || "AI import isn't configured on this deployment yet."};
-    if (resp.status===429) throw {code:'rate_limited', message: msg};
-    if (resp.status===422) throw {code:'invalid_json', message: msg};
-    throw {code:'upstream_error', message: msg || 'The AI backend returned an error.'};
+    if (resp.status===404) throw {code:'not_declared', message:"AI import endpoint not found — this deployment may not have the backend set up yet.", fromNetlify:true};
+    if (resp.status===503) throw {code:'sampling_disabled', message: msg || "AI import isn't configured on this deployment yet.", fromNetlify:true};
+    if (resp.status===429) throw {code:'rate_limited', message: msg, fromNetlify:true};
+    if (resp.status===422) throw {code:'invalid_json', message: msg, fromNetlify:true};
+    throw {code:'upstream_error', message: msg || 'The AI backend returned an error.', fromNetlify:true};
   }
   return body.data;
 }
@@ -1729,6 +1729,10 @@ function applyImportedCycle(data){
 }
 
 function aiErrorMessage(e){
+  // Netlify-path errors carry our own viewer-facing message; Artifact-path
+  // errors carry the sample capability's developer-facing `.message` (per its
+  // docs, NOT meant for viewers), so those fall through to the fixed copy below.
+  if (e && e.fromNetlify && e.message) return e.message;
   switch(e && e.code){
     case 'not_granted': return "You declined to let this page use Claude — reload the page to be asked again.";
     case 'sampling_disabled': return "Claude isn't available for this account right now.";

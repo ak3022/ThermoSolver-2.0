@@ -1,15 +1,22 @@
-// Netlify serverless function: proxies an image + prompt to the Claude API to
-// extract a thermodynamic cycle as structured JSON, without ever exposing the
-// API key to the browser. This is what lets the "AI import" feature work on a
-// plain static deploy (no claude.ai / Artifact platform involved).
+// Netlify serverless function: proxies an image + prompt to Google's Gemini
+// API to extract a thermodynamic cycle as structured JSON, without ever
+// exposing the API key to the browser. This is what lets the "AI import"
+// feature work on a plain static deploy (no claude.ai / Artifact involved).
 //
-// Setup: in the Netlify site's dashboard, Site configuration -> Environment
-// variables, add ANTHROPIC_API_KEY with a key from console.anthropic.com.
-// Never commit a key into this file or into git.
+// Setup: get a key from Google AI Studio — https://aistudio.google.com/apikey
+// (NOT the Vertex AI / GCP console route). As long as you don't link a Cloud
+// Billing account to that key, it runs on the free tier only: once you hit
+// the free quota, requests just get rejected (429) — you are never charged.
+// In Netlify's dashboard: Site configuration -> Environment variables, add
+// GEMINI_API_KEY with that value. Never commit a key into this file or git.
+//
+// Model/quota specifics drift over time — if this starts failing, check
+// https://ai.google.dev/gemini-api/docs/models and https://ai.google.dev/gemini-api/docs/rate-limits
+// for the current free-tier model name and swap the MODEL constant below.
 
-const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages';
-const MODEL = 'claude-haiku-4-5-20251001'; // fast + cheap, plenty for reading a problem into JSON
-const MAX_TOKENS = 2000;
+const MODEL = 'gemini-2.5-flash';
+const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`;
+const MAX_OUTPUT_TOKENS = 2000;
 const ALLOWED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
 const MAX_PROMPT_CHARS = 65536;
 const MAX_IMAGE_BASE64_CHARS = 28 * 1024 * 1024; // ~20MB binary, base64 inflates ~4/3
@@ -19,9 +26,9 @@ exports.handler = async (event) => {
     return respond(405, { error: 'Method not allowed' });
   }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    return respond(503, { error: 'AI import is not configured on this deployment yet (missing ANTHROPIC_API_KEY).' });
+    return respond(503, { error: 'AI import is not configured on this deployment yet (missing GEMINI_API_KEY).' });
   }
 
   let body;
@@ -36,28 +43,26 @@ exports.handler = async (event) => {
     return respond(400, { error: 'Prompt too long' });
   }
 
-  const content = [{ type: 'text', text: prompt }];
+  const parts = [{ text: prompt }];
   if (imageBase64) {
     if (typeof imageBase64 !== 'string' || imageBase64.length > MAX_IMAGE_BASE64_CHARS) {
       return respond(400, { error: 'Image too large' });
     }
-    const mediaType = ALLOWED_IMAGE_TYPES.includes(imageMediaType) ? imageMediaType : 'image/png';
-    content.push({ type: 'image', source: { type: 'base64', media_type: mediaType, data: imageBase64 } });
+    const mimeType = ALLOWED_IMAGE_TYPES.includes(imageMediaType) ? imageMediaType : 'image/png';
+    parts.push({ inline_data: { mime_type: mimeType, data: imageBase64 } });
   }
 
   let apiResp;
   try {
-    apiResp = await fetch(ANTHROPIC_API_URL, {
+    apiResp = await fetch(`${GEMINI_API_URL}?key=${encodeURIComponent(apiKey)}`, {
       method: 'POST',
-      headers: {
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
-      },
+      headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
-        model: MODEL,
-        max_tokens: MAX_TOKENS,
-        messages: [{ role: 'user', content }],
+        contents: [{ role: 'user', parts }],
+        generationConfig: {
+          maxOutputTokens: MAX_OUTPUT_TOKENS,
+          responseMimeType: 'application/json', // ask Gemini to return JSON directly
+        },
       }),
     });
   } catch (e) {
@@ -67,14 +72,21 @@ exports.handler = async (event) => {
   if (!apiResp.ok) {
     let detail = '';
     try { detail = (await apiResp.json()).error?.message || ''; } catch (e) {}
-    if (apiResp.status === 401) return respond(503, { error: 'AI import is misconfigured (invalid API key).' });
-    if (apiResp.status === 429) return respond(429, { error: 'Too many requests right now — try again shortly.' });
+    if (apiResp.status === 400 && /API key/i.test(detail)) return respond(503, { error: 'AI import is misconfigured (invalid API key).' });
+    if (apiResp.status === 429) return respond(429, { error: "You've hit the free-tier rate limit — try again in a minute." });
     return respond(502, { error: detail || 'The AI service returned an error.' });
   }
 
   const json = await apiResp.json();
-  const text = (json.content || []).map((b) => b.text || '').join('');
-  if (!text) return respond(502, { error: 'The AI service returned an empty response.' });
+  const candidate = (json.candidates || [])[0];
+  const text = ((candidate && candidate.content && candidate.content.parts) || []).map((p) => p.text || '').join('');
+  if (!text) {
+    const reason = candidate && candidate.finishReason;
+    if (reason === 'SAFETY' || reason === 'PROHIBITED_CONTENT') {
+      return respond(422, { error: 'The AI declined to process that image/description.' });
+    }
+    return respond(502, { error: 'The AI service returned an empty response.' });
+  }
 
   const parsed = extractJson(text);
   if (parsed === null) {
@@ -85,8 +97,8 @@ exports.handler = async (event) => {
 };
 
 // Tolerant JSON extraction: the whole reply, else a markdown code fence, else
-// the span from the first { or [ to the last } or ] — mirrors how Claude's
-// own sample.json() capability reads a reply.
+// the span from the first { or [ to the last } or ] — belt-and-suspenders on
+// top of responseMimeType:'application/json', which should already give clean JSON.
 function extractJson(text) {
   try { return JSON.parse(text); } catch (e) {}
   const fenceMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);

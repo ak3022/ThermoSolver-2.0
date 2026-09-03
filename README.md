@@ -65,13 +65,10 @@ see `aiMode` in `index.html`:
   capability directly (`window.claude.use('sample')`). Billed against the
   *viewer's* own Claude usage, no API key involved, nothing to configure.
 - **Anywhere else (e.g. this deployed on Netlify)** — calls this site's own
-  `/.netlify/functions/analyze-cycle`, which holds an Anthropic API key
-  server-side and proxies the request. This is what makes the feature work
-  for a normal public visitor with no Claude account of their own — but it
-  means **you** (the site owner) pay per call on your own Anthropic account,
-  not the visitor. It's a cheap call (Claude Haiku, a few thousand tokens),
-  likely well under a cent each, but it's not literally free the way the
-  Artifact path is.
+  `/.netlify/functions/analyze-cycle`, which holds a Gemini API key
+  server-side and proxies the request to Google's Gemini API. This is what
+  makes the feature work for a normal public visitor with no Claude account
+  of their own, at genuinely zero cost to the site owner — see below.
 
 ## Deploying to Netlify
 
@@ -84,13 +81,21 @@ The whole app is a static file plus one serverless function — no build step.
    GitHub repo. Build settings are already in `netlify.toml`
    (`publish = "."`, `functions = "netlify/functions"`) — Netlify should
    auto-detect it.
-3. To enable AI import: get an API key from console.anthropic.com, then in
-   the Netlify site's **Site configuration → Environment variables**, add
-   `ANTHROPIC_API_KEY` with that value. Never commit a key into this repo.
+3. To enable AI import at zero cost: get a key from
+   [Google AI Studio](https://aistudio.google.com/apikey) — **not** the
+   Vertex AI / GCP console route. As long as no Cloud Billing account is
+   linked to that key, it runs on the free tier only: past the free quota,
+   requests are simply rejected (HTTP 429) rather than charged — there is no
+   way for this to bill you. In the Netlify site's **Site configuration →
+   Environment variables**, add `GEMINI_API_KEY` with that value. Never
+   commit a key into this repo.
 4. Every `git push` to the connected branch auto-redeploys.
 
 Without step 3, everything else works fine — the AI button just shows a
-clear "not configured yet" message instead of failing silently.
+clear "not configured yet" message instead of failing silently. Gemini's
+free-tier model name and rate limits do drift over time — if AI import starts
+failing, check `MODEL` in `netlify/functions/analyze-cycle.js` against
+[ai.google.dev/gemini-api/docs/models](https://ai.google.dev/gemini-api/docs/models).
 
 ## Status
 
@@ -98,6 +103,4 @@ This is an MVP. Known gaps to build on next:
 - Region 3 steam (supercritical boilers)
 - Reheat/regeneration variants of Rankine, intercooling/reheat for Brayton
 - Saving/sharing a specific cycle configuration (currently resets on reload)
-- Rate-limiting on the Netlify AI function (currently uncapped — fine for
-  low traffic, worth adding if usage grows)
 - A custom domain once a name is settled on
