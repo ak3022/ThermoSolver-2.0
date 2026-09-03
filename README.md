@@ -54,10 +54,50 @@ then visit `http://localhost:5173/`.
   efficiency numbers, so this was checked against the classical closed-form
   efficiency formulas for Otto, Diesel, and Carnot as part of building it.
 
+## AI import ("upload a screenshot")
+
+The "✨ Import from a screenshot" button reads a textbook problem (image
+and/or typed text) and fills in a cycle for you. It works two different ways
+depending on where the page is running, picked automatically at load time —
+see `aiMode` in `index.html`:
+
+- **Inside a published Claude Artifact** — uses the platform's `sample`
+  capability directly (`window.claude.use('sample')`). Billed against the
+  *viewer's* own Claude usage, no API key involved, nothing to configure.
+- **Anywhere else (e.g. this deployed on Netlify)** — calls this site's own
+  `/.netlify/functions/analyze-cycle`, which holds an Anthropic API key
+  server-side and proxies the request. This is what makes the feature work
+  for a normal public visitor with no Claude account of their own — but it
+  means **you** (the site owner) pay per call on your own Anthropic account,
+  not the visitor. It's a cheap call (Claude Haiku, a few thousand tokens),
+  likely well under a cent each, but it's not literally free the way the
+  Artifact path is.
+
+## Deploying to Netlify
+
+The whole app is a static file plus one serverless function — no build step.
+
+1. Push this repo to GitHub (a new repo under your own account — I can push
+   the code, but creating the GitHub account/repo itself is something only
+   you can do).
+2. In Netlify, "Add new site" → "Import an existing project" → connect that
+   GitHub repo. Build settings are already in `netlify.toml`
+   (`publish = "."`, `functions = "netlify/functions"`) — Netlify should
+   auto-detect it.
+3. To enable AI import: get an API key from console.anthropic.com, then in
+   the Netlify site's **Site configuration → Environment variables**, add
+   `ANTHROPIC_API_KEY` with that value. Never commit a key into this repo.
+4. Every `git push` to the connected branch auto-redeploys.
+
+Without step 3, everything else works fine — the AI button just shows a
+clear "not configured yet" message instead of failing silently.
+
 ## Status
 
 This is an MVP. Known gaps to build on next:
 - Region 3 steam (supercritical boilers)
 - Reheat/regeneration variants of Rankine, intercooling/reheat for Brayton
 - Saving/sharing a specific cycle configuration (currently resets on reload)
-- A real domain + persistent hosting beyond the current Artifact link
+- Rate-limiting on the Netlify AI function (currently uncapped — fine for
+  low traffic, worth adding if usage grows)
+- A custom domain once a name is settled on

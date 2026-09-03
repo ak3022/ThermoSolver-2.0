@@ -126,6 +126,8 @@ a{color:var(--navy);}
 .pfield input:focus{outline:2px solid var(--navy); outline-offset:1px;}
 .pfield.has-value input{border-color:var(--line-strong); font-weight:600;}
 .state-err{margin-top:7px; font-size:11px; color:var(--bad); background:var(--bad-bg); border-radius:6px; padding:5px 7px;}
+.state-warn{margin-top:7px; font-size:11px; color:var(--warn); background:var(--warn-bg); border-radius:6px; padding:5px 7px;}
+.transition-warn{flex-basis:100%; font-size:10.5px; color:var(--warn); background:var(--warn-bg); border-radius:6px; padding:4px 7px; margin-top:2px;}
 
 .transition-row{display:flex; align-items:center; gap:8px; padding:8px 4px; margin-left:8px; min-width:0;}
 .transition-line{width:2px; align-self:stretch; background:var(--line-strong); min-height:26px; flex-shrink:0;}
@@ -711,6 +713,19 @@ const COMPONENT_META = {
   other:          {label:'Other / custom', role:'custom'},
 };
 
+// Flags a transition's process/component parameters that are set but won't
+// actually be used (e.g. an efficiency on a boiler, or n set on a non-polytropic
+// leg) — same spirit as state overdefinition: a stray value shouldn't just be
+// silently ignored without a hint.
+function transitionParamWarning(t){
+  const meta = COMPONENT_META[t.component] || {};
+  const warnings = [];
+  if (have(t.eff) && !meta.eff) warnings.push("η is set but doesn't apply to this component — ignored.");
+  if (have(t.vRatio) && have(t.pRatio)) warnings.push('Both v-ratio and p-ratio are set — only one applies here, the other is ignored.');
+  if (have(t.n) && t.process!=='polytropic') warnings.push("n is set but the process isn't polytropic — ignored.");
+  return warnings.length ? warnings.join(' ') : null;
+}
+
 function solveStateFor(fluid, known){
   return fluid==='water' ? TS.steam.solveState(known) : TS.gas.solveState(fluid, known);
 }
@@ -725,6 +740,25 @@ function solveCycle(cycle) {
 
   function countKnown(s){ return props.filter(p=>have(s[p])).length; }
 
+  // Flags extra raw inputs on a state that don't match what the OTHER inputs
+  // already imply — e.g. a student pastes 3-4 textbook values when 2 would
+  // fully fix the state, and one of them is slightly (or badly) wrong. Without
+  // this, the wrong value just sits there unused and unexplained.
+  function checkOverdefined(i, res){
+    const raw = cycle.states[i] || {};
+    const mismatches = [];
+    props.forEach(p=>{
+      if (!have(raw[p]) || !have(res[p])) return;
+      const entered = Number(raw[p]), computed = Number(res[p]);
+      let bad;
+      if (p==='x') bad = Math.abs(entered-computed) > 0.01;
+      else if (p==='T') bad = Math.abs(entered-computed) > 0.5;
+      else { const scale = Math.max(Math.abs(computed), 1e-6); bad = Math.abs(entered-computed)/scale > 0.02; }
+      if (bad) mismatches.push({prop:p, entered, computed});
+    });
+    st[i].__overdefined = mismatches.length ? mismatches : null;
+  }
+
   function tryResolve(i){
     if (countKnown(st[i]) >= props.length) { st[i].__error=null; return false; } // already fully determined
     const known = {};
@@ -735,6 +769,7 @@ function solveCycle(cycle) {
       let changed=false;
       props.forEach(p=>{ if (have(res[p]) && !have(st[i][p])) { st[i][p]=res[p]; changed=true; } });
       st[i].__error = null;
+      checkOverdefined(i, res);
       return changed;
     } else if (res && res.error) {
       st[i].__error = res.note || res.error;
@@ -802,7 +837,9 @@ function solveCycle(cycle) {
 
   const trans = cycle.transitions.slice(0,N).map((t,i)=>{
     const j=(i+1)%N;
-    return computeTransitionEnergy(st[i], st[j], t, fluid);
+    const e = computeTransitionEnergy(st[i], st[j], t, fluid);
+    e.warning = transitionParamWarning(t);
+    return e;
   });
 
   const summary = computeSummary(st, trans, cycle);
@@ -1160,6 +1197,8 @@ function buildStateCard(i, props){
   card.appendChild(grid);
   const err=document.createElement('div'); err.className='state-err'; err.style.display='none'; err.id='state-err-'+i;
   card.appendChild(err);
+  const warn=document.createElement('div'); warn.className='state-warn'; warn.style.display='none'; warn.id='state-warn-'+i;
+  card.appendChild(warn);
   return card;
 }
 function buildTransitionRow(i){
@@ -1179,6 +1218,8 @@ function buildTransitionRow(i){
   if (app.fluidType!=='water') body.appendChild(selectEl([['flow','Steady-flow'],['closed','Closed / piston']], t.system||'flow', v=>{ t.system=v; recompute(); }));
   const badge=document.createElement('span'); badge.className='transition-badge'; badge.id='trans-badge-'+i; badge.textContent='—';
   body.appendChild(badge);
+  const warnRow=document.createElement('div'); warnRow.className='transition-warn'; warnRow.style.display='none'; warnRow.id='trans-warn-'+i;
+  body.appendChild(warnRow);
   row.appendChild(line); row.appendChild(body);
   return row;
 }
@@ -1219,14 +1260,25 @@ function renderOutputs(){
   res.states.forEach((s,i)=>{
     const errEl=document.getElementById('state-err-'+i);
     if (errEl){ if (s.__error){ errEl.style.display='block'; errEl.textContent=s.__error; } else errEl.style.display='none'; }
+    const warnEl=document.getElementById('state-warn-'+i);
+    if (warnEl){
+      if (s.__overdefined && s.__overdefined.length){
+        const meta = s.__overdefined.map(m=>`${PROP_META[m.prop].label}=${fmtNum(m.entered, m.prop==='x'?3:2)} (other inputs give ${fmtNum(m.computed, m.prop==='x'?3:2)})`).join('; ');
+        warnEl.style.display='block';
+        warnEl.textContent = `Overdefined — you entered more than needed and it doesn't quite match: ${meta}.`;
+      } else warnEl.style.display='none';
+    }
   });
   res.transitions.forEach((t,i)=>{
     const b=document.getElementById('trans-badge-'+i);
-    if (!b) return;
-    const parts=[];
-    if (have(t.Q)) parts.push('q='+fmtNum(t.Q,1));
-    if (have(t.W)) parts.push('w='+fmtNum(t.W,1));
-    b.textContent = parts.length?parts.join('  '):'—';
+    if (b){
+      const parts=[];
+      if (have(t.Q)) parts.push('q='+fmtNum(t.Q,1));
+      if (have(t.W)) parts.push('w='+fmtNum(t.W,1));
+      b.textContent = parts.length?parts.join('  '):'—';
+    }
+    const w=document.getElementById('trans-warn-'+i);
+    if (w){ if (t.warning){ w.style.display='block'; w.textContent=t.warning; } else w.style.display='none'; }
   });
 
   const sg=document.getElementById('summaryGrid'); sg.innerHTML='';
@@ -1549,16 +1601,66 @@ function initTheme(){
 }
 
 /* ---------------------------- AI import (screenshot → cycle) ---------------------------- */
-let sampleAPI = null, sampleImgLimits = null, pendingImageBlob = null;
+// Two independent ways to reach Claude, picked automatically at load time:
+//  - 'artifact': running inside a published Claude Artifact — uses the platform's
+//    `sample` capability, billed against the VIEWER's own Claude usage, no key needed.
+//  - 'netlify': running as a plain static deploy (e.g. Netlify) — calls this site's
+//    own /.netlify/functions/analyze-cycle, which holds the API key server-side.
+// Both paths converge on the same buildAIImportPrompt()/applyImportedCycle() logic.
+let sampleAPI = null, sampleImgLimits = null, pendingImageBlob = null, aiMode = null;
+const NETLIFY_IMG_LIMITS = {maxCount:1, maxInputBytes:20*1024*1024, mediaTypes:['image/png','image/jpeg','image/webp','image/gif']};
 
 async function initAIImport(){
   try {
-    if (!window.claude || typeof window.claude.use !== 'function') return;
-    sampleAPI = await window.claude.use('sample');
+    if (window.claude && typeof window.claude.use === 'function') {
+      sampleAPI = await window.claude.use('sample');
+      if (sampleAPI) {
+        aiMode = 'artifact';
+        try { sampleImgLimits = (await sampleAPI.limits()).images || null; } catch(e) { sampleImgLimits = null; }
+      }
+    }
   } catch(e) { sampleAPI = null; }
-  if (!sampleAPI) return;
+  if (!aiMode) {
+    // Not inside an Artifact viewer — assume this deploy has the Netlify function
+    // and show the button; a missing/unconfigured backend surfaces as a clear
+    // in-modal error at click time rather than silently hiding the feature.
+    aiMode = 'netlify';
+    sampleImgLimits = NETLIFY_IMG_LIMITS;
+  }
   document.getElementById('aiImportBtn').hidden = false;
-  try { sampleImgLimits = (await sampleAPI.limits()).images || null; } catch(e) { sampleImgLimits = null; }
+}
+
+function blobToBase64(blob){
+  return new Promise((resolve,reject)=>{
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result).split(',')[1] || '');
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+async function callNetlifyAI(prompt, imageBlob){
+  let imageBase64=null, imageMediaType=null;
+  if (imageBlob){ imageMediaType = imageBlob.type || 'image/png'; imageBase64 = await blobToBase64(imageBlob); }
+  let resp;
+  try {
+    resp = await fetch('/.netlify/functions/analyze-cycle', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({prompt, imageBase64, imageMediaType}),
+    });
+  } catch(e) {
+    throw {code:'upstream_error', message:'Network error reaching the AI backend.'};
+  }
+  let body = null;
+  try { body = await resp.json(); } catch(e) {}
+  if (!resp.ok) {
+    const msg = (body && body.error) || '';
+    if (resp.status===404) throw {code:'not_declared', message:"AI import endpoint not found — this deployment may not have the backend set up yet."};
+    if (resp.status===503) throw {code:'sampling_disabled', message: msg || "AI import isn't configured on this deployment yet."};
+    if (resp.status===429) throw {code:'rate_limited', message: msg};
+    if (resp.status===422) throw {code:'invalid_json', message: msg};
+    throw {code:'upstream_error', message: msg || 'The AI backend returned an error.'};
+  }
+  return body.data;
 }
 
 function buildAIImportPrompt(text, hasImage){
@@ -1709,9 +1811,14 @@ async function runAIImport(pasteHandler){
   statusEl.textContent = 'Thinking… this can take up to a minute.';
   try {
     const prompt = buildAIImportPrompt(textArea.value.trim(), !!pendingImageBlob);
-    const opts = {modelTier:'default'};
-    if (pendingImageBlob) opts.images = pendingImageBlob;
-    const data = await sampleAPI.json(prompt, opts);
+    let data;
+    if (aiMode==='artifact') {
+      const opts = {modelTier:'default'};
+      if (pendingImageBlob) opts.images = pendingImageBlob;
+      data = await sampleAPI.json(prompt, opts);
+    } else {
+      data = await callNetlifyAI(prompt, pendingImageBlob);
+    }
     applyImportedCycle(data);
     document.removeEventListener('paste', pasteHandler);
     closeAIImportModal();
