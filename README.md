@@ -1,4 +1,4 @@
-# ThermoSolver
+# ThermoSolver (https://thermosolver.netlify.app/)
 
 An interactive thermodynamic cycle solver and visualizer, built for students to
 learn cycle analysis by building and editing cycles themselves rather than
