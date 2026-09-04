@@ -11,9 +11,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=JetBrains+Mono:wght@400;500;600;700&family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#f6f6f7; --bg-elev:#ffffff; --bg-sunken:#f0f0f2;
-  --ink:#1a1a1e; --ink-dim:#63636b; --ink-faint:#8f8f97;
-  --line:#e5e5e9; --line-strong:#d3d3d9;
+  --bg:#f2f2f3; --bg-elev:#ffffff; --bg-sunken:#eaeaed;
+  --ink:#101012; --ink-dim:#45454c; --ink-faint:#6b6b73;
+  --line:#d6d6dc; --line-strong:#aeaeb8;
   --maroon:#8b0000; --maroon-ink:#ffffff; --maroon-soft:#fbe9e7;
   --navy:#00008b; --navy-ink:#ffffff; --navy-soft:#e8e9fb;
   --accent:#25735f; --warn:#9a5b00; --warn-bg:#fbf0dd; --bad:#8b0000; --bad-bg:#fbe9e7;
@@ -90,8 +90,9 @@ a{color:var(--navy);}
 .field label{font-size:10.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-faint); font-weight:600;}
 .field select, .field input[type=number], .field input[type=text]{
   font-family:var(--sans); font-size:13.5px; color:var(--ink); background:var(--bg-sunken);
-  border:1px solid var(--line); border-radius:7px; padding:7px 8px; min-width:0;
+  border:1px solid var(--line-strong); border-radius:7px; padding:7px 8px; min-width:0; cursor:pointer;
 }
+.field input[type=number], .field input[type=text]{cursor:text;}
 .field input[type=number]{font-family:var(--mono);}
 .field select{width:min(190px, 60vw);}
 .field input[type=number]{width:88px;}
@@ -122,7 +123,7 @@ a{color:var(--navy);}
 .pfield label{font-size:10px; color:var(--ink-faint); font-weight:700; font-family:var(--sans);}
 .pfield input{
   font-family:var(--mono); font-size:12.5px; padding:5px 6px; border-radius:6px;
-  border:1px solid var(--line); background:var(--bg-sunken); color:var(--ink); width:100%; min-width:0;
+  border:1px solid var(--line-strong); background:var(--bg-sunken); color:var(--ink); width:100%; min-width:0; cursor:text;
 }
 .pfield input:focus{outline:2px solid var(--navy); outline-offset:1px;}
 .pfield.has-value input{border-color:var(--line-strong); font-weight:600;}
@@ -138,8 +139,9 @@ a{color:var(--navy);}
 }
 .transition-body select, .transition-body input{
   font-family:var(--sans); font-size:12px; padding:4px 6px; border-radius:6px;
-  border:1px solid var(--line); background:var(--bg-sunken); color:var(--ink); max-width:100%;
+  border:1px solid var(--line-strong); background:var(--bg-sunken); color:var(--ink); max-width:100%; cursor:pointer;
 }
+.transition-body input{cursor:text;}
 .transition-body input{font-family:var(--mono);}
 .transition-body select:focus, .transition-body input:focus{outline:2px solid var(--navy); outline-offset:1px;}
 .theme-toggle:focus-visible, .share-btn:focus-visible{outline:2px solid var(--navy); outline-offset:1px;}
